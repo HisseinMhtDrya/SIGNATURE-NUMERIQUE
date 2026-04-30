@@ -6,7 +6,7 @@ const userSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
   role: { type: String, enum: ['user', 'admin'], default: 'user' },
-  isActive: { type: Boolean, default: true },
+  isActive: { type: Boolean, default: false },
   publicKey: { type: String },
   privateKey: { type: String },
   lastLogin: { type: Date },
@@ -14,6 +14,11 @@ const userSchema = new mongoose.Schema({
   // Champs 2FA
   totpEnabled: { type: Boolean, default: false },
   totpSecret: { type: String },
+  // Champs OTP pour connexion
+  otp: { type: String },
+  otpExpiration: { type: Date },
+  otpAttempts: { type: Number, default: 0 },
+  isOtpVerified: { type: Boolean, default: false },
   // Champs OAuth
   googleId: { type: String },
   googleAccessToken: { type: String },

@@ -4,7 +4,7 @@ const User = require('../models/User');
 const auth = async (req, res, next) => {
   try {
     const token = req.header('Authorization')?.replace('Bearer ', '');
-    
+
     // Logs d'accès avec IP et date
     const clientIP = req.ip || req.connection.remoteAddress || req.socket.remoteAddress;
     const timestamp = new Date().toISOString();

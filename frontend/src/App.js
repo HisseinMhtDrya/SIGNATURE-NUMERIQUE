@@ -11,6 +11,10 @@ import AdminDocumentsPage from './components/AdminDocumentsPage';
 import TwoFactorSetup from './components/TwoFactorSetup';
 import Navbar from './components/Navbar';
 import ProtectedRoute from './components/ProtectedRoute';
+import WorkflowSignature from './pages/WorkflowSignature';
+import GuestWorkflowSignature from './pages/GuestWorkflowSignature';
+import ThankYou from './pages/ThankYou';
+import OtpAuth from './pages/OtpAuth';
 
 function App() {
   const user = JSON.parse(localStorage.getItem('user') || '{}');
@@ -21,6 +25,9 @@ function App() {
         <Routes>
           {/* Public routes */}
           <Route path="/" element={<Login />} />
+          <Route path="/otp-auth" element={<OtpAuth />} />
+          <Route path="/guest-workflow/:workflowId" element={<GuestWorkflowSignature />} />
+          <Route path="/thank-you" element={<ThankYou />} />
           
           {/* Protected routes */}
           <Route 
@@ -78,6 +85,18 @@ function App() {
                 <>
                   <Navbar />
                   <TwoFactorSetup />
+                </>
+              </ProtectedRoute>
+            } 
+          />
+          
+          <Route 
+            path="/workflow/:workflowId" 
+            element={
+              <ProtectedRoute>
+                <>
+                  <Navbar />
+                  <WorkflowSignature />
                 </>
               </ProtectedRoute>
             } 

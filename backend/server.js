@@ -19,6 +19,7 @@ const securityRoutes = require('./routes/security');
 // const intrusionRoutes = require('./routes/intrusion');
 const mlRoutes = require('./routes/ml');
 const testRoutes = require('./routes/test');
+const workflowRoutes = require('./routes/workflow');
 
 const app = express();
 
@@ -30,7 +31,7 @@ app.use((req, res, next) => {
 
 // 🔒 CORS doit être AVANT les middlewares de sécurité
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://localhost:5000'],
+  origin: process.env.FRONTEND_URL || ['http://localhost:3000', 'http://localhost:5000'],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
@@ -55,6 +56,7 @@ app.use('/api/security', securityRoutes);
 // app.use('/api/intrusion', intrusionRoutes);
 app.use('/api/ml', mlRoutes);
 app.use('/api/test', testRoutes);
+app.use('/api/workflow', workflowRoutes);
 
 // 🚨 Gestion des erreurs (doit être APRÈS les routes)
 app.use(notFound);

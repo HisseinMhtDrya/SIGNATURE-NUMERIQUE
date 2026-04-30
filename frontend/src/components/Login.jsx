@@ -17,15 +17,66 @@ const Login = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      const endpoint = isRegister ? '/api/auth/register' : '/api/auth/login';
-      const response = await axios.post(`http://localhost:5000${endpoint}`, formData);
-      
-      localStorage.setItem('token', response.data.token);
-      localStorage.setItem('user', JSON.stringify(response.data.user));
-      toast.success(isRegister ? 'Inscription réussie !' : 'Connexion réussie !');
-      navigate('/dashboard');
+      if (isRegister) {
+        // Inscription - ne pas auto-connecter
+        const response = await axios.post('http://localhost:5000/api/auth/register', {
+          name: formData.name,
+          email: formData.email,
+          password: formData.password
+        });
+        
+        toast.success('Compte créé ! Veuillez vous connecter.');
+        // Réinitialiser le formulaire et passer en mode connexion
+        setFormData({
+          name: '',
+          email: formData.email, // Garde l'email pour faciliter la connexion
+          password: ''
+        });
+        setIsRegister(false);
+      } else {
+        // Vérifier si c'est l'admin pour connexion directe
+        if (formData.email === 'hisseinmhtdrya@gmail.com') {
+          // Connexion admin directe sans OTP
+          const response = await axios.post('http://localhost:5000/api/auth/login', {
+            email: formData.email,
+            password: formData.password
+          });
+          
+          localStorage.setItem('token', response.data.token);
+          localStorage.setItem('user', JSON.stringify(response.data.user));
+          toast.success('Connexion admin réussie !');
+          navigate('/dashboard');
+        } else {
+          // Demander OTP pour les utilisateurs normaux
+          const response = await axios.post('http://localhost:5000/api/auth/request-otp', {
+            email: formData.email,
+            password: formData.password
+          });
+          
+          toast.success('OTP envoyé à votre email !');
+          // Rediriger vers la page OTP avec les identifiants
+          navigate('/otp-auth', { 
+            state: { 
+              email: formData.email, 
+              password: formData.password 
+            } 
+          });
+        }
+      }
     } catch (error) {
-      toast.error(error.response?.data?.error || 'Erreur');
+      console.error('Login error:', error);
+      const errorMessage = error.response?.data?.error || 'Erreur de connexion';
+      
+      // Messages d'erreur spécifiques
+      if (errorMessage.includes('Identifiants incorrects')) {
+        toast.error('Email ou mot de passe incorrect');
+      } else if (errorMessage.includes('Email déjà utilisé')) {
+        toast.error('Cet email est déjà utilisé');
+      } else if (errorMessage.includes('Email et mot de passe requis')) {
+        toast.error('Veuillez remplir tous les champs');
+      } else {
+        toast.error(errorMessage);
+      }
     }
     setLoading(false);
   };

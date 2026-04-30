@@ -175,4 +175,139 @@ router.get('/admin/all', auth, async (req, res) => {
   }
 });
 
+// Partager document - générer liens pour les signataires
+router.get('/:id/share', auth, async (req, res) => {
+  try {
+    console.log(`📄 Share document - User: ${req.user.email}, Doc ID: ${req.params.id}`);
+    
+    const document = await Document.findById(req.params.id);
+    if (!document) {
+      return res.status(404).json({ error: 'Document non trouvé' });
+    }
+    
+    // Vérifier que l'utilisateur est le propriétaire ou admin
+    if (document.owner.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+      console.log(`❌ Access denied - User ${req.user.email} not owner of document ${req.params.id}`);
+      return res.status(403).json({ error: 'Accès refusé' });
+    }
+    
+    // Récupérer les signatures existantes pour ce document
+    const Signature = require('../models/Signature');
+    const signatures = await Signature.find({ document: req.params.id })
+      .populate('user', 'name email');
+    
+    // Générer les URLs de partage
+    const shareUrls = signatures.map(sig => {
+      const baseUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+      const signUrl = `${baseUrl}/sign/${document._id}?user=${sig.user._id}&token=${btoa(`${sig.user.email}:${document._id}`)}`;
+      
+      return {
+        email: sig.user.email,
+        name: sig.user.name,
+        signUrl,
+        signed: !!sig.signedAt,
+        signedAt: sig.signedAt
+      };
+    });
+    
+    // Si aucune signature existante, créer une URL pour le propriétaire
+    if (shareUrls.length === 0) {
+      const baseUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+      const signUrl = `${baseUrl}/sign/${document._id}?user=${req.user._id}&token=${btoa(`${req.user.email}:${document._id}`)}`;
+      
+      shareUrls.push({
+        email: req.user.email,
+        name: req.user.name,
+        signUrl,
+        signed: false,
+        signedAt: null
+      });
+    }
+    
+    console.log(`✅ Share URLs generated for document ${req.params.id} - ${shareUrls.length} URLs`);
+    res.json(shareUrls);
+    
+  } catch (error) {
+    console.error('❌ Share document error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Supprimer document
+router.delete('/:id', auth, async (req, res) => {
+  try {
+    console.log(`🗑️ Delete document - User: ${req.user.email}, Doc ID: ${req.params.id}`);
+    
+    const document = await Document.findById(req.params.id);
+    if (!document) {
+      return res.status(404).json({ error: 'Document non trouvé' });
+    }
+    
+    // Vérifier que l'utilisateur est le propriétaire ou admin
+    if (document.owner.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+      return res.status(403).json({ error: 'Accès refusé' });
+    }
+    
+    // Supprimer le fichier physique
+    if (document.filePath && fs.existsSync(document.filePath)) {
+      fs.unlinkSync(document.filePath);
+      console.log(`🗑️ File deleted: ${document.filePath}`);
+    }
+    
+    // Supprimer les signatures associées
+    const Signature = require('../models/Signature');
+    await Signature.deleteMany({ document: req.params.id });
+    
+    // Supprimer le document
+    await Document.findByIdAndDelete(req.params.id);
+    
+    console.log(`✅ Document deleted: ${req.params.id}`);
+    res.json({ message: 'Document supprimé avec succès' });
+    
+  } catch (error) {
+    console.error('❌ Delete document error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Renommer document
+router.put('/:id', auth, async (req, res) => {
+  try {
+    console.log(`✏️ Rename document - User: ${req.user.email}, Doc ID: ${req.params.id}`);
+    
+    const { name } = req.body;
+    if (!name || name.trim() === '') {
+      return res.status(400).json({ error: 'Nom du document requis' });
+    }
+    
+    const document = await Document.findById(req.params.id);
+    if (!document) {
+      return res.status(404).json({ error: 'Document non trouvé' });
+    }
+    
+    // Vérifier que l'utilisateur est le propriétaire ou admin
+    if (document.owner.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+      return res.status(403).json({ error: 'Accès refusé' });
+    }
+    
+    document.name = name.trim();
+    document.updatedAt = new Date();
+    await document.save();
+    
+    console.log(`✅ Document renamed: ${req.params.id} -> ${name}`);
+    res.json({ 
+      message: 'Document renommé avec succès',
+      document: {
+        id: document._id,
+        name: document.name,
+        updatedAt: document.updatedAt
+      }
+    });
+    
+  } catch (error) {
+    console.error('❌ Rename document error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 module.exports = router;

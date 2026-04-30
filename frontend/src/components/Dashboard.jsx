@@ -3,15 +3,26 @@ import axios from 'axios';
 import { useDropzone } from 'react-dropzone';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
+import { FaShare, FaTrash, FaEdit, FaCopy, FaCalendar, FaClock, FaCheck, FaTimes, FaUsers } from 'react-icons/fa';
+import CreateWorkflow from './CreateWorkflow';
 
 const Dashboard = () => {
   const [documents, setDocuments] = useState([]);
   const [selectedDoc, setSelectedDoc] = useState(null);
   const [signatures, setSignatures] = useState([]);
+  const [shareUrls, setShareUrls] = useState([]);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [showWorkflowModal, setShowWorkflowModal] = useState(false);
+  const [selectedWorkflowDoc, setSelectedWorkflowDoc] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [actionLoading, setActionLoading] = useState({});
   const navigate = useNavigate();
 
   const token = localStorage.getItem('token');
   const user = JSON.parse(localStorage.getItem('user'));
+  const documentsPerPage = 6;
 
   useEffect(() => {
     if (!token) {
@@ -69,6 +80,82 @@ const Dashboard = () => {
     }
   };
 
+  // Partager document
+  const shareDocument = async (doc) => {
+    setActionLoading({ [doc._id]: true });
+    try {
+      const token = localStorage.getItem('token');
+      const res = await axios.get(`http://localhost:5000/api/documents/${doc._id}/share`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      const urls = res.data.map(signer => ({
+        email: signer.email,
+        url: signer.signUrl,
+        signed: signer.signed
+      }));
+      
+      setShareUrls(urls);
+      setShowShareModal(true);
+      toast.success('Liens de partage générés');
+    } catch (error) {
+      toast.error('Erreur génération liens');
+    } finally {
+      setActionLoading({ [doc._id]: false });
+    }
+  };
+
+  // Copier lien
+  const copyToClipboard = (text) => {
+    navigator.clipboard.writeText(text);
+    toast.success('Lien copié');
+  };
+
+  // Supprimer document
+  const deleteDocument = async (docId) => {
+    if (!window.confirm('Êtes-vous sûr de vouloir supprimer ce document?')) return;
+    
+    setActionLoading({ [docId]: true });
+    try {
+      await axios.delete(`http://localhost:5000/api/documents/${docId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setDocuments(documents.filter(doc => doc._id !== docId));
+      toast.success('Document supprimé');
+    } catch (error) {
+      toast.error('Erreur suppression');
+    } finally {
+      setActionLoading({ [docId]: false });
+    }
+  };
+
+  // Renommer document
+  const renameDocument = async (docId, newName) => {
+    try {
+      await axios.put(`http://localhost:5000/api/documents/${docId}`, 
+        { name: newName },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setDocuments(documents.map(doc => 
+        doc._id === docId ? { ...doc, name: newName } : doc
+      ));
+      toast.success('Document renommé');
+    } catch (error) {
+      toast.error('Erreur renommage');
+    }
+  };
+
+  // Filtrer documents
+  const filteredDocuments = documents.filter(doc =>
+    doc.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  // Pagination
+  const indexOfLastDoc = currentPage * documentsPerPage;
+  const indexOfFirstDoc = indexOfLastDoc - documentsPerPage;
+  const currentDocs = filteredDocuments.slice(indexOfFirstDoc, indexOfLastDoc);
+  const totalPages = Math.ceil(filteredDocuments.length / documentsPerPage);
+
   // Vérifier signature
   const verifySignature = async (docId, sigId) => {
     try {
@@ -99,6 +186,19 @@ const Dashboard = () => {
     } catch (error) {
       toast.error('Erreur historique');
     }
+  };
+
+  // Ouvrir le modal de workflow
+  const openWorkflowModal = (doc) => {
+    setSelectedWorkflowDoc(doc);
+    setShowWorkflowModal(true);
+  };
+
+  // Callback après création du workflow
+  const handleWorkflowCreated = (data) => {
+    toast.success(`Workflow créé avec ${data.totalSteps} signataires !`);
+    setShowWorkflowModal(false);
+    setSelectedWorkflowDoc(null);
   };
 
   return (
@@ -153,6 +253,22 @@ const Dashboard = () => {
         </div>
       </div>
 
+      {/* Barre de recherche et filtres */}
+      <div className="search-section">
+        <div className="search-container">
+          <div className="search-input-group">
+            <span className="search-icon">🔍</span>
+            <input
+              type="text"
+              placeholder="Rechercher un document..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="search-input"
+            />
+          </div>
+        </div>
+      </div>
+
       {/* Liste documents moderne */}
       <div className="documents-section">
         <h2 className="section-title">
@@ -160,7 +276,7 @@ const Dashboard = () => {
           Mes documents
         </h2>
         <div className="documents-grid">
-          {documents.map(doc => (
+          {currentDocs.map(doc => (
             <div key={doc._id} className="document-card">
               <div className="document-header">
                 <div className="document-icon">📄</div>
@@ -186,9 +302,26 @@ const Dashboard = () => {
                 <button 
                   onClick={() => signDocument(doc._id)} 
                   className="action-btn primary"
+                  disabled={actionLoading[doc._id]}
                 >
                   <span className="btn-icon">✍️</span>
-                  Signer
+                  {actionLoading[doc._id] ? '...' : 'Signer'}
+                </button>
+                <button 
+                  onClick={() => openWorkflowModal(doc)} 
+                  className="action-btn workflow"
+                  disabled={actionLoading[doc._id]}
+                >
+                  <span className="btn-icon">👥</span>
+                  {actionLoading[doc._id] ? '...' : 'Workflow'}
+                </button>
+                <button 
+                  onClick={() => shareDocument(doc)} 
+                  className="action-btn share"
+                  disabled={actionLoading[doc._id]}
+                >
+                  <span className="btn-icon">🔗</span>
+                  {actionLoading[doc._id] ? '...' : 'Partager'}
                 </button>
                 <a 
                   href={`http://localhost:5000${doc.filePath}`} 
@@ -198,6 +331,14 @@ const Dashboard = () => {
                   <span className="btn-icon">📥</span>
                   Télécharger
                 </a>
+                <button 
+                  onClick={() => deleteDocument(doc._id)} 
+                  className="action-btn danger"
+                  disabled={actionLoading[doc._id]}
+                >
+                  <span className="btn-icon">🗑️</span>
+                  {actionLoading[doc._id] ? '...' : 'Supprimer'}
+                </button>
               </div>
             </div>
           ))}
@@ -241,6 +382,18 @@ const Dashboard = () => {
             ))}
           </div>
         </div>
+      )}
+
+      {/* Modal de création de workflow */}
+      {showWorkflowModal && (
+        <CreateWorkflow
+          documentId={selectedWorkflowDoc?._id}
+          onWorkflowCreated={handleWorkflowCreated}
+          onClose={() => {
+            setShowWorkflowModal(false);
+            setSelectedWorkflowDoc(null);
+          }}
+        />
       )}
     </div>
   );
