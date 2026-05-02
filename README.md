@@ -9,6 +9,9 @@ PAGE DE CONNEXION:
 PAGE D'AUTHENTIFICATION:
 <img width="1250" height="1650" alt="Capture d&#39;écran 2026-04-30 055103" src="https://github.com/user-attachments/assets/878d4fd0-8818-4715-b5cd-99f4f8515d42" />
 INVITATION DES SIGNATURES:
-<img width="1250" height="1650" alt="Capture d&#39;écran 2026-04-30 055103" src="https://github.com/user-attachments/assets/c3d15daa-c558-404a-8396-d952aa74a017" />
+<img width="2182" height="1716" alt="Capture d&#39;écran 2026-05-02 101147" src="https://github.com/user-attachments/assets/64cccdb5-a1ad-42d2-9850-1f10967b96cb" />
+
 VALIDATION SIGNATURE:
-<img width="1250" height="1650" alt="Capture d&#39;écran 2026-04-30 055103" src="https://github.com/user-attachments/assets/2c21cda4-b148-4526-a2e1-e440feb1bf7f" />
+<img width="2063" height="1452" alt="Capture d&#39;écran 2026-05-02 101231" src="https://github.com/user-attachments/assets/17c5fabd-7eaf-4530-9fd7-34ba93154ecf" />
+SECURITER API:
+<img width="2063" height="1452" alt="Capture d&#39;écran 2026-05-02 101231" src="https://github.com/user-attachments/assets/c6d5b419-c633-460a-9df6-8ba691318c6e" />
