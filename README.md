@@ -14,4 +14,5 @@ INVITATION DES SIGNATURES:
 VALIDATION SIGNATURE:
 <img width="2063" height="1452" alt="Capture d&#39;écran 2026-05-02 101231" src="https://github.com/user-attachments/assets/17c5fabd-7eaf-4530-9fd7-34ba93154ecf" />
 SECURITER API:
-<img width="2063" height="1452" alt="Capture d&#39;écran 2026-05-02 101231" src="https://github.com/user-attachments/assets/c6d5b419-c633-460a-9df6-8ba691318c6e" />
+<img width="1956" height="1814" alt="Capture d&#39;écran 2026-04-29 135642" src="https://github.com/user-attachments/assets/20206c47-58b7-47ab-baba-4b09994f4d24" />
+
