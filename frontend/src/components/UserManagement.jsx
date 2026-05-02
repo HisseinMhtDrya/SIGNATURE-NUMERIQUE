@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { API_BASE_URL } from '../config/api';
 import { toast } from 'react-toastify';
 
 const UserManagement = () => {
@@ -15,7 +16,7 @@ const UserManagement = () => {
   const fetchUsers = async (page = 1) => {
     setLoading(true);
     try {
-      const res = await axios.get(`http://localhost:5000/api/admin/users?page=${page}&limit=10`, {
+      const res = await axios.get(`${API_BASE_URL}/admin/users?page=${page}&limit=10`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setUsers(res.data.users);
@@ -27,7 +28,7 @@ const UserManagement = () => {
 
   const toggleUser = async (userId) => {
     try {
-      await axios.patch(`http://localhost:5000/api/admin/users/${userId}/toggle`, {}, {
+      await axios.patch(`${API_BASE_URL}/admin/users/${userId}/toggle`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
       toast.success('Statut utilisateur modifié');
@@ -41,7 +42,7 @@ const UserManagement = () => {
     if (!searchTerm) return fetchUsers();
     
     try {
-      const res = await axios.get(`http://localhost:5000/api/admin/users/search?q=${searchTerm}`, {
+      const res = await axios.get(`${API_BASE_URL}/admin/users/search?q=${searchTerm}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setUsers(res.data);

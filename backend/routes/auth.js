@@ -99,21 +99,39 @@ router.post('/login', async (req, res) => {
     const isAdmin = user.role === 'admin' && user.email === 'hisseinmhtdrya@gmail.com';
     
     if (!isAdmin) {
-      // Vérification OTP obligatoire pour les utilisateurs normaux
+      // Si l'utilisateur n'a jamais été vérifié avec OTP, le demander
       if (!user.isOtpVerified) {
+        console.log(`🔍 User OTP status - Email: ${user.email}, isOtpVerified: ${user.isOtpVerified}`);
+        
         if (!otp) {
+          console.log(`❌ OTP missing for user: ${user.email}`);
           return res.status(400).json({ 
-            error: 'OTP requis',
+            error: 'OTP requis pour la première connexion',
             requiresOtp: true 
           });
         }
         
+        console.log(`🔑 Verifying OTP for user: ${user.email}, OTP provided: ${otp}`);
+        
         const OtpService = require('../services/otpService');
         const otpResult = await OtpService.verifyOtp(user, otp);
         
+        console.log(`📊 OTP verification result:`, otpResult);
+        
         if (!otpResult.valid) {
+          console.log(`❌ OTP verification failed for user: ${user.email}, Error: ${otpResult.error}`);
           return res.status(400).json({ error: otpResult.error });
         }
+        
+        // Marquer l'utilisateur comme vérifié avec OTP
+        console.log(`✅ OTP verified successfully - Marking user as verified: ${user.email}`);
+        user.isOtpVerified = true;
+        await user.save();
+        
+        console.log(`💾 User updated - isOtpVerified: ${user.isOtpVerified}`);
+        console.log(`✅ OTP verified for first time - User: ${user.email}`);
+      } else {
+        console.log(`🔓 User already OTP verified - No OTP required - User: ${user.email}`);
       }
     }
 

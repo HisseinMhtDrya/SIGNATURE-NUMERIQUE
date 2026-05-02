@@ -168,61 +168,58 @@ body {
   top: 50%;
   transform: translateY(-50%);
   color: var(--gray-400);
-  font-size: 1.25rem;
   pointer-events: none;
   z-index: 1;
 }
 
 .modern-input {
   width: 100%;
-  padding: var(--spacing-md) var(--spacing-md) var(--spacing-md) 3rem;
+  padding: 1rem 1rem 1rem 3rem;
   border: 2px solid var(--gray-200);
-  border-radius: var(--border-radius);
+  border-radius: 12px;
   font-size: 1rem;
-  font-weight: 500;
-  color: var(--gray-800);
+  transition: all 0.3s ease;
   background: var(--white);
-  transition: all var(--transition);
-}
-
-.modern-input::placeholder {
-  color: var(--gray-400);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .modern-input:focus {
   outline: none;
-  border-color: var(--gray-700);
-  box-shadow: 0 0 0 3px var(--gray-100);
-  transform: translateY(-1px);
+  border-color: #1877f2;
+  box-shadow: 0 0 0 3px rgba(24, 119, 242, 0.1);
+  transform: translateY(-2px);
 }
 
 .modern-input:hover {
   border-color: var(--gray-300);
+  transform: translateY(-1px);
 }
 
 .modern-button {
   width: 100%;
-  padding: var(--spacing-md) var(--spacing-lg);
-  background: var(--gray-700);
+  padding: 1rem 2rem;
+  background: #1877f2;
   color: var(--white);
   border: none;
-  border-radius: var(--border-radius);
+  border-radius: 12px;
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all var(--transition);
+  transition: all 0.3s ease;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: var(--spacing-sm);
+  gap: 0.5rem;
   position: relative;
   overflow: hidden;
+  margin-top: 1rem;
+  box-shadow: 0 4px 12px rgba(24, 119, 242, 0.3);
 }
 
 .modern-button:hover:not(:disabled) {
-  background: var(--gray-800);
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(24, 119, 242, 0.4);
+  background: #166fe5;
 }
 
 .modern-button:active:not(:disabled) {
@@ -230,12 +227,13 @@ body {
 }
 
 .modern-button:disabled {
-  opacity: 0.6;
+  opacity: 0.7;
   cursor: not-allowed;
   transform: none;
 }
 
 .button-arrow {
+  transition: transform 0.3s ease;
   transition: transform var(--transition);
 }
 
@@ -343,7 +341,7 @@ body {
 .modern-button {
   width: 100%;
   padding: 1rem 2rem;
-  background: var(--gray-700);
+  background: #1877f2;
   color: var(--white);
   border: none;
   border-radius: 12px;
@@ -362,7 +360,7 @@ body {
 .modern-button:hover:not(:disabled) {
   transform: translateY(-2px);
   box-shadow: var(--shadow-md);
-  background: var(--gray-800);
+  background: #166fe5;
 }
 
 .modern-button:disabled {

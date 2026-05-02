@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import { API_BASE_URL } from '../config/api';
 import { toast } from 'react-toastify';
 import { useNavigate, useLocation } from 'react-router-dom';
 
@@ -17,7 +18,7 @@ const OtpAuth = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      const response = await axios.post('http://localhost:5000/api/auth/login', {
+      const response = await axios.post(`${API_BASE_URL}/auth/login`, {
         email: email,
         password: password,
         otp: otp
@@ -36,7 +37,7 @@ const OtpAuth = () => {
   const handleResendOtp = async () => {
     setResendLoading(true);
     try {
-      await axios.post('http://localhost:5000/api/auth/request-otp', {
+      await axios.post(`${API_BASE_URL}/auth/request-otp`, {
         email: email,
         password: password
       });

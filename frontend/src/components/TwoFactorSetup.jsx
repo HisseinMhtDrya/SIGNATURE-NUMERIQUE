@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { API_BASE_URL } from '../config/api';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
 
@@ -18,7 +19,7 @@ const TwoFactorSetup = () => {
 
   const checkTwoFactorStatus = async () => {
     try {
-      const res = await axios.get('http://localhost:5000/api/totp/status', {
+      const res = await axios.get(`${API_BASE_URL}/totp/status`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setIsSetup(res.data.enabled);
@@ -30,7 +31,7 @@ const TwoFactorSetup = () => {
   const setupTwoFactor = async () => {
     setIsLoading(true);
     try {
-      const res = await axios.post('http://localhost:5000/api/totp/enable', {}, {
+      const res = await axios.post(`${API_BASE_URL}/totp/enable`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
@@ -48,7 +49,7 @@ const TwoFactorSetup = () => {
     e.preventDefault();
     setIsLoading(true);
     try {
-      await axios.post('http://localhost:5000/api/totp/verify', {
+      await axios.post(`${API_BASE_URL}/totp/verify`, {
         token: verificationToken
       }, {
         headers: { Authorization: `Bearer ${token}` }

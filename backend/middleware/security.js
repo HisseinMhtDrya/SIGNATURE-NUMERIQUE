@@ -14,7 +14,7 @@ class SecurityMiddleware {
           styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
           scriptSrc: ["'self'"],
           imgSrc: ["'self'", "data:", "https:"],
-          connectSrc: ["'self'", "http://localhost:5000"],
+          connectSrc: ["'self'", "http://localhost:5000", "https://localhost:5000", "http://localhost:3001", "https://localhost:3001"],
           fontSrc: ["'self'", "https://fonts.gstatic.com"],
           objectSrc: ["'none'"],
           mediaSrc: ["'self'"],

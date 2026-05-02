@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
+import axios from 'axios';
+import { API_BASE_URL } from '../config/api';
 import { useParams, useNavigate } from 'react-router-dom';
 import SignatureCanvas from 'react-signature-canvas';
 import './GuestWorkflowSignature.css';
@@ -23,7 +25,7 @@ const GuestWorkflowSignature = () => {
 
   const fetchWorkflow = async () => {
     try {
-      const res = await fetch(`http://localhost:5000/api/workflow/${workflowId}`, {
+      const res = await fetch(`${API_BASE_URL}/workflow/${workflowId}`, {
         headers: { 'Content-Type': 'application/json' }
       });
       
@@ -55,7 +57,7 @@ const GuestWorkflowSignature = () => {
 
     setIsSubmitting(true);
     try {
-      const res = await fetch('http://localhost:5000/api/workflow/verify-otp', {
+      const res = await fetch(`${API_BASE_URL}/workflow/verify-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ workflowId, otp })
@@ -89,7 +91,7 @@ const GuestWorkflowSignature = () => {
     try {
       const signatureData = sigCanvas.current.toDataURL();
       
-      const res = await fetch('http://localhost:5000/api/workflow/sign', {
+      const res = await fetch(`${API_BASE_URL}/workflow/sign`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ workflowId, signatureData })
@@ -123,7 +125,7 @@ const GuestWorkflowSignature = () => {
 
     setIsSubmitting(true);
     try {
-      const res = await fetch('http://localhost:5000/api/workflow/reject', {
+      const res = await fetch(`${API_BASE_URL}/workflow/reject`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ workflowId, rejectionReason: reason })

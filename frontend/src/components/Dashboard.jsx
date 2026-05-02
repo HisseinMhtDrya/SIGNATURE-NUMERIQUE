@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { API_BASE_URL } from '../config/api';
 import { useDropzone } from 'react-dropzone';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
-import { FaShare, FaTrash, FaEdit, FaCopy, FaCalendar, FaClock, FaCheck, FaTimes, FaUsers } from 'react-icons/fa';
+import { FaShare, FaTrash, FaEdit, FaCopy, FaCalendar, FaClock, FaCheck, FaTimes, FaUsers, FaFilePdf, FaEye, FaHourglassHalf, FaCheckCircle, FaTimesCircle, FaEnvelope } from 'react-icons/fa';
 import CreateWorkflow from './CreateWorkflow';
 
 const Dashboard = () => {
@@ -14,6 +15,9 @@ const Dashboard = () => {
   const [showShareModal, setShowShareModal] = useState(false);
   const [showWorkflowModal, setShowWorkflowModal] = useState(false);
   const [selectedWorkflowDoc, setSelectedWorkflowDoc] = useState(null);
+  const [workflows, setWorkflows] = useState([]);
+  const [showWorkflowDetails, setShowWorkflowDetails] = useState(false);
+  const [selectedWorkflow, setSelectedWorkflow] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -30,6 +34,7 @@ const Dashboard = () => {
       return;
     }
     fetchDocuments();
+    fetchWorkflows();
   }, [token, navigate]);
 
   // Upload fichier
@@ -44,7 +49,7 @@ const Dashboard = () => {
       formData.append('document', acceptedFiles[0]);
       
       try {
-        const res = await axios.post('http://localhost:5000/api/documents', formData, {
+        const res = await axios.post(`${API_BASE_URL}/documents`, formData, {
           headers: { Authorization: `Bearer ${token}` }
         });
         toast.success('Document uploadé !');
@@ -58,7 +63,7 @@ const Dashboard = () => {
   // Charger documents
   const fetchDocuments = async () => {
     try {
-      const res = await axios.get('http://localhost:5000/api/documents', {
+      const res = await axios.get(`${API_BASE_URL}/documents`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setDocuments(res.data);
@@ -67,10 +72,23 @@ const Dashboard = () => {
     }
   };
 
+  // Charger les workflows créés
+  const fetchWorkflows = async () => {
+    try {
+      const res = await axios.get(`${API_BASE_URL}/workflow/created`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setWorkflows(res.data);
+    } catch (error) {
+      console.error('Erreur chargement workflows:', error);
+      toast.error('Erreur chargement workflows');
+    }
+  };
+
   // Signer document
   const signDocument = async (docId) => {
     try {
-      const res = await axios.post(`http://localhost:5000/api/signatures/${docId}/sign`, {}, {
+      const res = await axios.post(`${API_BASE_URL}/signatures/${docId}/sign`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
       toast.success('Document signé !');
@@ -85,7 +103,7 @@ const Dashboard = () => {
     setActionLoading({ [doc._id]: true });
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.get(`http://localhost:5000/api/documents/${doc._id}/share`, {
+      const res = await axios.get(`${API_BASE_URL}/documents/${doc._id}/share`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
@@ -117,7 +135,7 @@ const Dashboard = () => {
     
     setActionLoading({ [docId]: true });
     try {
-      await axios.delete(`http://localhost:5000/api/documents/${docId}`, {
+      await axios.delete(`${API_BASE_URL}/documents/${docId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setDocuments(documents.filter(doc => doc._id !== docId));
@@ -132,7 +150,7 @@ const Dashboard = () => {
   // Renommer document
   const renameDocument = async (docId, newName) => {
     try {
-      await axios.put(`http://localhost:5000/api/documents/${docId}`, 
+      await axios.put(`${API_BASE_URL}/documents/${docId}`, 
         { name: newName },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -159,7 +177,7 @@ const Dashboard = () => {
   // Vérifier signature
   const verifySignature = async (docId, sigId) => {
     try {
-      const res = await axios.post(`http://localhost:5000/api/signatures/${docId}/verify/${sigId}`, {}, {
+      const res = await axios.post(`${API_BASE_URL}/signatures/${docId}/verify/${sigId}`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
@@ -178,7 +196,7 @@ const Dashboard = () => {
   // Charger signatures
   const fetchSignatures = async (docId) => {
     try {
-      const res = await axios.get(`http://localhost:5000/api/signatures/${docId}/history`, {
+      const res = await axios.get(`${API_BASE_URL}/signatures/${docId}/history`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setSignatures(res.data);
@@ -199,6 +217,52 @@ const Dashboard = () => {
     toast.success(`Workflow créé avec ${data.totalSteps} signataires !`);
     setShowWorkflowModal(false);
     setSelectedWorkflowDoc(null);
+    fetchWorkflows(); // Recharger les workflows après création
+  };
+
+  // Fonctions utilitaires pour les workflows
+  const getStatusIcon = (status) => {
+    switch (status) {
+      case 'completed': return <FaCheckCircle className="text-green-500" />;
+      case 'cancelled': return <FaTimesCircle className="text-red-500" />;
+      case 'in_progress': return <FaHourglassHalf className="text-yellow-500" />;
+      default: return <FaClock className="text-gray-500" />;
+    }
+  };
+
+  const getStatusBadge = (status) => {
+    switch (status) {
+      case 'completed': return 'bg-green-100 text-green-800';
+      case 'cancelled': return 'bg-red-100 text-red-800';
+      case 'in_progress': return 'bg-yellow-100 text-yellow-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getStatusText = (status) => {
+    switch (status) {
+      case 'completed': return '✅ Terminé';
+      case 'cancelled': return '❌ Annulé';
+      case 'in_progress': return '⏳ En cours';
+      default: return '📋 En attente';
+    }
+  };
+
+  const formatDate = (date) => {
+    if (!date) return 'N/A';
+    return new Date(date).toLocaleString('fr-FR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  // Afficher les détails d'un workflow
+  const showWorkflowDetailsModal = (workflow) => {
+    setSelectedWorkflow(workflow);
+    setShowWorkflowDetails(true);
   };
 
   return (
@@ -324,7 +388,7 @@ const Dashboard = () => {
                   {actionLoading[doc._id] ? '...' : 'Partager'}
                 </button>
                 <a 
-                  href={`http://localhost:5000${doc.filePath}`} 
+                  href={`${API_BASE_URL.replace('/api', '')}${doc.filePath}`} 
                   download 
                   className="action-btn success"
                 >
@@ -343,6 +407,110 @@ const Dashboard = () => {
             </div>
           ))}
         </div>
+      </div>
+
+      {/* Section Workflows - Historique des signatures */}
+      <div className="workflows-section">
+        <h2 className="section-title">
+          <span className="title-icon">👥</span>
+          Mes Workflows de Signature
+        </h2>
+        {workflows.length === 0 ? (
+          <div className="empty-workflows">
+            <div className="empty-icon">📋</div>
+            <h3>Aucun workflow créé</h3>
+            <p>Créez votre premier workflow en cliquant sur le bouton "Workflow" sur un document.</p>
+          </div>
+        ) : (
+          <div className="workflows-grid">
+            {workflows.map((workflow) => (
+              <div key={workflow._id} className="workflow-card">
+                <div className="workflow-header">
+                  <div className="workflow-document-info">
+                    <FaFilePdf className="workflow-document-icon" />
+                    <div>
+                      <h4>{workflow.documentId?.name || 'Document inconnu'}</h4>
+                      <p className="workflow-date">
+                        Créé le {formatDate(workflow.createdAt)}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="workflow-status">
+                    <span className={`workflow-status-badge ${getStatusBadge(workflow.status)}`}>
+                      {getStatusIcon(workflow.status)}
+                      {getStatusText(workflow.status)}
+                    </span>
+                  </div>
+                </div>
+                
+                <div className="workflow-progress">
+                  <div className="workflow-progress-info">
+                    <span>Progression: {workflow.steps.filter(s => s.status === 'signed').length} / {workflow.steps.length}</span>
+                    <span>Étape: {workflow.currentStep + 1}/{workflow.steps.length}</span>
+                  </div>
+                  <div className="workflow-progress-bar">
+                    <div 
+                      className="workflow-progress-fill"
+                      style={{ 
+                        width: `${(workflow.steps.filter(s => s.status === 'signed').length / workflow.steps.length) * 100}%` 
+                      }}
+                    ></div>
+                  </div>
+                </div>
+                
+                <div className="workflow-signers">
+                  <h5>Signataires:</h5>
+                  <div className="workflow-signers-list">
+                    {workflow.steps.map((step, index) => (
+                      <div key={index} className="workflow-signer-item">
+                        <div className="workflow-signer-info">
+                          <FaEnvelope className="workflow-signer-icon" />
+                          <span>{step.email}</span>
+                          {step.userId && (
+                            <span className="workflow-signer-name">({step.userId.name})</span>
+                          )}
+                        </div>
+                        <div className="workflow-signer-status">
+                          {step.status === 'signed' && (
+                            <>
+                              <FaCheckCircle className="text-green-500" />
+                              <span>Signé</span>
+                              <span className="workflow-signer-date">
+                                {formatDate(step.signedAt)}
+                              </span>
+                            </>
+                          )}
+                          {step.status === 'rejected' && (
+                            <>
+                              <FaTimesCircle className="text-red-500" />
+                              <span>Refusé</span>
+                            </>
+                          )}
+                          {step.status === 'pending' && (
+                            <>
+                              <FaClock className="text-gray-400" />
+                              <span>En attente</span>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                
+                <div className="workflow-actions">
+                  <button 
+                    onClick={() => showWorkflowDetailsModal(workflow)}
+                    className="action-btn secondary"
+                  >
+                    <FaEye />
+                    Voir détails
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Historique signatures moderne */}
@@ -394,6 +562,87 @@ const Dashboard = () => {
             setSelectedWorkflowDoc(null);
           }}
         />
+      )}
+
+      {/* Modal détails workflow */}
+      {showWorkflowDetails && selectedWorkflow && (
+        <div className="modal-overlay">
+          <div className="modal-content workflow-details-modal">
+            <div className="modal-header">
+              <h2>Détails du Workflow</h2>
+              <button 
+                onClick={() => setShowWorkflowDetails(false)}
+                className="modal-close"
+              >
+                ×
+              </button>
+            </div>
+            
+            <div className="modal-body">
+              <div className="workflow-detail-section">
+                <h3>Document</h3>
+                <p><strong>Nom:</strong> {selectedWorkflow.documentId?.name || 'N/A'}</p>
+                <p><strong>Statut:</strong> {getStatusText(selectedWorkflow.status)}</p>
+                <p><strong>Créé le:</strong> {formatDate(selectedWorkflow.createdAt)}</p>
+                {selectedWorkflow.completedAt && (
+                  <p><strong>Terminé le:</strong> {formatDate(selectedWorkflow.completedAt)}</p>
+                )}
+              </div>
+              
+              <div className="workflow-detail-section">
+                <h3>Historique des Signatures</h3>
+                <div className="workflow-timeline">
+                  {selectedWorkflow.steps.map((step, index) => (
+                    <div key={index} className="timeline-item">
+                      <div className="timeline-marker">
+                        {step.status === 'signed' && <FaCheckCircle className="text-green-500" />}
+                        {step.status === 'rejected' && <FaTimesCircle className="text-red-500" />}
+                        {step.status === 'pending' && <FaClock className="text-gray-400" />}
+                      </div>
+                      <div className="timeline-content">
+                        <div className="timeline-header">
+                          <span className="timeline-email">{step.email}</span>
+                          <span className="timeline-status">
+                            {step.status === 'signed' && '✅ Signé'}
+                            {step.status === 'rejected' && '❌ Refusé'}
+                            {step.status === 'pending' && '⏳ En attente'}
+                          </span>
+                        </div>
+                        
+                        {step.status === 'signed' && (
+                          <div className="signature-info">
+                            <p><strong>Signé le:</strong> {formatDate(step.signedAt)}</p>
+                            {step.signatureData && (
+                              <div className="signature-preview">
+                                <strong>Signature:</strong>
+                                <img 
+                                  src={step.signatureData} 
+                                  alt="Signature" 
+                                  className="signature-image"
+                                />
+                              </div>
+                            )}
+                          </div>
+                        )}
+                        
+                        {step.status === 'rejected' && (
+                          <div className="rejection-info">
+                            <p><strong>Refusé le:</strong> {formatDate(step.signedAt)}</p>
+                            <p><strong>Raison:</strong> {step.rejectionReason || 'Aucune raison spécifiée'}</p>
+                          </div>
+                        )}
+                        
+                        {step.status === 'pending' && (
+                          <p className="pending-info">En attente de signature...</p>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

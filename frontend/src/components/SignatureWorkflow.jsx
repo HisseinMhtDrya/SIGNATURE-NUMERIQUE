@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
+import { API_BASE_URL } from '../config/api';
 import { FaSignature, FaUser, FaEnvelope, FaCalendar, FaLock, FaCheck, FaTimes } from 'react-icons/fa';
 
 const SignatureWorkflow = ({ documentId, onClose }) => {
@@ -13,8 +14,6 @@ const SignatureWorkflow = ({ documentId, onClose }) => {
   const [showAddSigner, setShowAddSigner] = useState(false);
   const [alert, setAlert] = useState({ type: '', message: '' });
   const canvasRef = useRef(null);
-  
-  const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
   useEffect(() => {
     fetchDocument();
@@ -23,7 +22,7 @@ const SignatureWorkflow = ({ documentId, onClose }) => {
   const fetchDocument = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get(`${API_URL}/documents/${documentId}`, {
+      const response = await axios.get(`${API_BASE_URL}/documents/${documentId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setDocument(response.data);

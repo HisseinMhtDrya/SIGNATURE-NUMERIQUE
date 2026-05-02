@@ -76,7 +76,7 @@ Si vous n'avez pas demandé ce code, ignorez cet email.
     user.otp = null;
     user.otpExpiration = null;
     user.otpAttempts = 0;
-    user.isOtpVerified = false;
+    // NE PAS réinitialiser isOtpVerified - l'utilisateur reste vérifié
     await user.save();
   }
 }

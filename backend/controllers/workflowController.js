@@ -84,7 +84,14 @@ const sendInvite = async (workflowId, email) => {
     console.log(`📧 Envoi invitation à ${email} pour workflow ${workflowId}`);
     
     const workflow = await SignatureWorkflow.findById(workflowId).populate('documentId');
+    if (!workflow) {
+      throw new Error('Workflow non trouvé');
+    }
+    
     const step = workflow.steps[workflow.currentStep];
+    if (!step) {
+      throw new Error('Aucune étape en cours');
+    }
     
     const otp = generateOTP();
     step.otpCode = otp;
@@ -99,14 +106,29 @@ const sendInvite = async (workflowId, email) => {
       console.log(`📧 Email: ${email}`);
       console.log(`🔑 Code OTP: ${otp}`);
       console.log(`⏰ Valide 5 minutes`);
-      console.log(`🔗 Lien: http://localhost:3000/guest-workflow/${workflowId}`);
+      console.log(`🔗 Lien: http://localhost:3001/guest-workflow/${workflowId}`);
       console.log('❌ Configurez EMAIL_USER et EMAIL_PASS dans .env');
       console.log('='.repeat(60) + '\n');
-      return;
+      return { success: false, reason: 'Email non configuré', otp, link: `http://localhost:3001/guest-workflow/${workflowId}` };
     }
 
+    // Recréer le transporter pour éviter les problèmes de cache
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
+      },
+      debug: true, // Activer le debug en développement
+      logger: true
+    });
+
+    // Vérifier la connexion avant d'envoyer
+    await transporter.verify();
+    console.log('✅ Connexion email vérifiée');
+
     // Mode production : envoyer l'email
-    const baseUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    const baseUrl = process.env.FRONTEND_URL || 'http://localhost:3001';
     const mailOptions = {
       from: process.env.EMAIL_USER,
       to: email,
@@ -136,15 +158,23 @@ const sendInvite = async (workflowId, email) => {
       `
     };
 
-    await transporter.sendMail(mailOptions);
+    const info = await transporter.sendMail(mailOptions);
     console.log(`✅ Email envoyé à ${email}`);
+    console.log(`📧 Message ID: ${info.messageId}`);
+    
+    return { success: true, messageId: info.messageId };
+    
   } catch (error) {
     console.error('❌ Erreur envoi email:', error);
+    
     // En mode développement, ne pas bloquer le workflow si l'email échoue
     if (process.env.NODE_ENV === 'development') {
       console.log('⚠️ Mode développement: workflow continuera malgré l\'erreur email');
-      return;
+      console.log(`🔑 Code OTP (dev): ${otp || 'N/A'}`);
+      console.log(`🔗 Lien direct: http://localhost:3001/guest-workflow/${workflowId}`);
+      return { success: false, reason: 'Erreur email (mode dev)', error: error.message };
     }
+    
     throw error;
   }
 };
@@ -378,3 +408,28 @@ exports.resendOTP = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+// 9️⃣ LISTE DES WORKFLOWS CRÉÉS PAR L'UTILISATEUR (AVEC HISTORIQUE)
+exports.getCreatedWorkflows = async (req, res) => {
+  try {
+    console.log(`📋 Récupération workflows créés par ${req.user.email}`);
+    
+    const workflows = await SignatureWorkflow.find({
+      createdBy: req.user._id
+    })
+    .populate('documentId', 'name filePath')
+    .populate('steps.userId', 'name email')
+    .populate('createdBy', 'name email')
+    .sort({ createdAt: -1 });
+
+    console.log(`✅ Trouvé ${workflows.length} workflows créés par ${req.user.email}`);
+    
+    res.json(workflows);
+  } catch (error) {
+    console.error('❌ Erreur récupération workflows créés:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// Exporter sendInvite pour les tests
+module.exports.sendInvite = sendInvite;

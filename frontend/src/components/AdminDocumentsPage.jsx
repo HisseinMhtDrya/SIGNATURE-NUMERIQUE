@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { API_BASE_URL } from '../config/api';
 import { toast } from 'react-toastify';
 
 const AdminDocumentsPage = () => {
@@ -18,7 +19,7 @@ const AdminDocumentsPage = () => {
 
   const fetchDocuments = async () => {
     try {
-      const res = await axios.get('http://localhost:5000/api/documents', {
+      const res = await axios.get(`${API_BASE_URL}/documents`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setDocuments(res.data);
@@ -29,7 +30,7 @@ const AdminDocumentsPage = () => {
 
   const fetchSignatures = async () => {
     try {
-      const res = await axios.get('http://localhost:5000/api/signatures', {
+      const res = await axios.get(`${API_BASE_URL}/signatures`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setSignatures(res.data);

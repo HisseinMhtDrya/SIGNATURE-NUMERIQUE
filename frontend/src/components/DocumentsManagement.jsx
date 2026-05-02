@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { API_BASE_URL } from '../config/api';
 import { useNavigate } from 'react-router-dom';
 import { FaFilePdf, FaShare, FaDownload, FaTrash, FaEdit, FaClock, FaCheck, FaTimes } from 'react-icons/fa';
 
@@ -15,7 +16,7 @@ const DocumentsManagement = () => {
   const navigate = useNavigate();
 
   const documentsPerPage = 10;
-  const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+  const API_URL = API_BASE_URL;
 
   useEffect(() => {
     fetchDocuments();
@@ -197,7 +198,7 @@ const DocumentsManagement = () => {
               <button
                 onClick={() => handleAction('download', doc)}
                 disabled={actionLoading[doc._id]}
-                className="bg-purple-600 text-white px-3 py-2 rounded hover:bg-purple-700 disabled:opacity-50"
+                className="bg-blue-600 text-white px-3 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
                 title="Télécharger"
               >
                 <FaDownload />

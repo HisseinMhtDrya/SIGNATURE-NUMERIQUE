@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import axios from 'axios';
+import { API_BASE_URL } from '../config/api';
 import './CreateWorkflow.css';
 
 const CreateWorkflow = ({ documentId, onWorkflowCreated, onClose }) => {
@@ -29,7 +31,7 @@ const CreateWorkflow = ({ documentId, onWorkflowCreated, onClose }) => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch('http://localhost:5000/api/workflow/create', {
+      const res = await fetch(`${API_BASE_URL}/workflow/create`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,

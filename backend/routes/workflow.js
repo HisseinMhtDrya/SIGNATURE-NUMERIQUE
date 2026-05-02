@@ -13,9 +13,6 @@ router.post('/sign', workflowController.signDocument);
 // 4️⃣ Rejeter la signature (publique pour les invités)
 router.post('/reject', workflowController.rejectSignature);
 
-// 6️⃣ Obtenir les détails d'un workflow (publique pour les invités)
-router.get('/:id', workflowController.getWorkflow);
-
 // Routes protégées (nécessitent authentification)
 router.use(auth);
 
@@ -27,5 +24,11 @@ router.post('/resend-otp', workflowController.resendOTP);
 
 // 7️⃣ Lister les workflows de l'utilisateur connecté
 router.get('/', workflowController.getUserWorkflows);
+
+// 9️⃣ Lister les workflows créés par l'utilisateur (avec historique)
+router.get('/created', workflowController.getCreatedWorkflows);
+
+// 6️⃣ Obtenir les détails d'un workflow (publique pour les invités) - DOIT ÊTRE LA DERNIÈRE ROUTE
+router.get('/:id', workflowController.getWorkflow);
 
 module.exports = router;

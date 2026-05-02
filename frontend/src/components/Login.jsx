@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import { API_BASE_URL } from '../config/api';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
 
@@ -19,7 +20,7 @@ const Login = () => {
     try {
       if (isRegister) {
         // Inscription - ne pas auto-connecter
-        const response = await axios.post('http://localhost:5000/api/auth/register', {
+        const response = await axios.post(`${API_BASE_URL}/auth/register`, {
           name: formData.name,
           email: formData.email,
           password: formData.password
@@ -34,33 +35,39 @@ const Login = () => {
         });
         setIsRegister(false);
       } else {
-        // Vérifier si c'est l'admin pour connexion directe
-        if (formData.email === 'hisseinmhtdrya@gmail.com') {
-          // Connexion admin directe sans OTP
-          const response = await axios.post('http://localhost:5000/api/auth/login', {
+        // Essayer la connexion directe d'abord
+        try {
+          const response = await axios.post(`${API_BASE_URL}/auth/login`, {
             email: formData.email,
             password: formData.password
           });
           
+          // Si la connexion réussit, l'utilisateur est soit admin, soit déjà vérifié OTP
           localStorage.setItem('token', response.data.token);
           localStorage.setItem('user', JSON.stringify(response.data.user));
-          toast.success('Connexion admin réussie !');
+          toast.success('Connexion réussie !');
           navigate('/dashboard');
-        } else {
-          // Demander OTP pour les utilisateurs normaux
-          const response = await axios.post('http://localhost:5000/api/auth/request-otp', {
-            email: formData.email,
-            password: formData.password
-          });
           
-          toast.success('OTP envoyé à votre email !');
-          // Rediriger vers la page OTP avec les identifiants
-          navigate('/otp-auth', { 
-            state: { 
-              email: formData.email, 
-              password: formData.password 
-            } 
-          });
+        } catch (loginError) {
+          // Si la connexion échoue avec "OTP requis", demander l'OTP
+          if (loginError.response?.data?.error?.includes('OTP requis')) {
+            const response = await axios.post(`${API_BASE_URL}/auth/request-otp`, {
+              email: formData.email,
+              password: formData.password
+            });
+            
+            toast.success('OTP envoyé à votre email !');
+            // Rediriger vers la page OTP avec les identifiants
+            navigate('/otp-auth', { 
+              state: { 
+                email: formData.email, 
+                password: formData.password 
+              } 
+            });
+          } else {
+            // Autre erreur de connexion
+            throw loginError;
+          }
         }
       }
     } catch (error) {
