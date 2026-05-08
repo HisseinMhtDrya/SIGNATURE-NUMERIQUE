@@ -12,6 +12,7 @@ const Login = () => {
     password: ''
   });
   const [loading, setLoading] = useState(false);
+  const [loadingMessage, setLoadingMessage] = useState('');
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -19,6 +20,7 @@ const Login = () => {
     setLoading(true);
     try {
       if (isRegister) {
+        setLoadingMessage('Création de votre compte en cours...');
         // Inscription - ne pas auto-connecter
         const response = await axios.post(`${API_BASE_URL}/auth/register`, {
           name: formData.name,
@@ -35,6 +37,7 @@ const Login = () => {
         });
         setIsRegister(false);
       } else {
+        setLoadingMessage('Connexion en cours...');
         // Essayer la connexion directe d'abord
         try {
           const response = await axios.post(`${API_BASE_URL}/auth/login`, {
@@ -86,6 +89,7 @@ const Login = () => {
       }
     }
     setLoading(false);
+    setLoadingMessage('');
   };
 
   return (
@@ -150,7 +154,10 @@ const Login = () => {
           
           <button type="submit" disabled={loading} className="modern-button">
             {loading ? (
-              <span className="loading-spinner"></span>
+              <>
+                <span className="loading-spinner"></span>
+                <span className="loading-text">{loadingMessage}</span>
+              </>
             ) : (
               <>
                 {isRegister ? 'Créer mon compte' : 'Se connecter'}

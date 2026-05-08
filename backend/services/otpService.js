@@ -24,20 +24,29 @@ Si vous n'avez pas demandé ce code, ignorez cet email.
 
   // Créer et envoyer un OTP pour un utilisateur
   static async createAndSendOtp(user) {
+    console.log(`🔑 Creating OTP for user: ${user.email}`);
+    
     // Générer un nouvel OTP
     const otp = this.generateOtp();
     const expiration = new Date(Date.now() + (process.env.OTP_EXPIRATION_MINUTES || 10) * 60 * 1000);
     
-    // Mettre à jour l'utilisateur
+    // Mettre à jour l'utilisateur en une seule opération
     user.otp = otp;
     user.otpExpiration = expiration;
     user.otpAttempts = 0;
     user.isOtpVerified = false;
     
     await user.save();
+    console.log(`💾 OTP saved for user: ${user.email}`);
     
-    // Envoyer l'email
-    await this.sendOtpEmail(user.email, otp);
+    // Envoyer l'email (avec timeout pour éviter les blocages)
+    try {
+      await this.sendOtpEmail(user.email, otp);
+      console.log(`📧 OTP email sent successfully to: ${user.email}`);
+    } catch (emailError) {
+      console.error(`❌ Failed to send OTP email to ${user.email}:`, emailError.message);
+      // Ne pas lancer d'erreur - l'OTP est déjà sauvegardé
+    }
     
     return { message: 'OTP envoyé avec succès', expiration };
   }

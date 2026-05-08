@@ -41,12 +41,12 @@ const AdminDocumentsPage = () => {
   };
 
   const getDocumentSignatures = (documentId) => {
-    return signatures.filter(sig => sig.document === documentId);
+    return signatures.filter(sig => sig.document && sig.document._id === documentId);
   };
 
   const filteredDocuments = documents.filter(doc => 
     doc.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (doc.user && doc.user.name.toLowerCase().includes(searchTerm.toLowerCase()))
+    (doc.owner && doc.owner.name.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   if (loading) {
@@ -153,14 +153,14 @@ const AdminDocumentsPage = () => {
                   <div className="document-info">
                     <h3>{doc.name}</h3>
                     <p className="document-meta">
-                      {doc.user ? `Par ${doc.user.name}` : 'Utilisateur inconnu'}
+                      {doc.owner ? `Par ${doc.owner.name}` : 'Utilisateur inconnu'}
                     </p>
                   </div>
                 </div>
                 
                 <div className="document-hash">
                   <span className="hash-label">HASH:</span>
-                  <span className="hash-value">{doc.hash}</span>
+                  <span className="hash-value">{doc.originalHash ? doc.originalHash.substring(0, 12) + '...' : 'N/A'}</span>
                 </div>
 
                 <div className="signatures-preview">

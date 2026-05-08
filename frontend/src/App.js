@@ -13,6 +13,7 @@ import Navbar from './components/Navbar';
 import ProtectedRoute from './components/ProtectedRoute';
 import WorkflowSignature from './pages/WorkflowSignature';
 import GuestWorkflowSignature from './pages/GuestWorkflowSignature';
+import WorkflowHistory from './pages/WorkflowHistory';
 import ThankYou from './pages/ThankYou';
 import OtpAuth from './pages/OtpAuth';
 
@@ -37,6 +38,18 @@ function App() {
                 <>
                   <Navbar />
                   <Dashboard />
+                </>
+              </ProtectedRoute>
+            } 
+          />
+          
+          <Route 
+            path="/workflows" 
+            element={
+              <ProtectedRoute>
+                <>
+                  <Navbar />
+                  <WorkflowHistory />
                 </>
               </ProtectedRoute>
             } 

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { API_BASE_URL } from '../config/api';
 import { toast } from 'react-toastify';
+import { FaUsers, FaSearch, FaBan, FaCheck, FaCrown, FaUser } from 'react-icons/fa';
 
 const UserManagement = () => {
   const [users, setUsers] = useState([]);
@@ -55,12 +56,12 @@ const UserManagement = () => {
     <div className="users-section">
       <div className="section-header">
         <h2 className="section-title">
-          <span className="title-icon"><i className="fas fa-users"></i></span>
+          <span className="title-icon"><FaUsers /></span>
           Gestion des utilisateurs
         </h2>
         <div className="search-container">
           <div className="search-input-group">
-            <div className="search-icon"><i className="fas fa-search"></i></div>
+            <div className="search-icon"><FaSearch /></div>
             <input
               type="text"
               placeholder="Rechercher par nom ou email..."
@@ -142,7 +143,7 @@ const UserManagement = () => {
                   <td>
                     <span className={`role-badge ${user.role}`}>
                       <span className="role-icon">
-                        {user.role === 'admin' ? ' ' : ' '}
+                        {user.role === 'admin' ? <FaCrown /> : <FaUser />}
                       </span>
                       {user.role.toUpperCase()}
                     </span>
@@ -176,7 +177,7 @@ const UserManagement = () => {
                         onClick={() => toggleUser(user.id)}
                       >
                         <span className="btn-icon">
-                          {user.isActive ? '<i className="fas fa-ban"></i>' : '<i className="fas fa-check"></i>'}
+                          {user.isActive ? <FaBan /> : <FaCheck />}
                         </span>
                         {user.isActive ? 'Bloquer' : 'Activer'}
                       </button>

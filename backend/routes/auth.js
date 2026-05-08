@@ -10,12 +10,16 @@ router.post('/register', async (req, res) => {
   try {
     const { name, email, password } = req.body;
     
-    const existingUser = await User.findOne({ email });
+    console.log(`🚀 Starting registration for: ${email}`);
+    
+    // Vérification email existante (avec index pour optimisation)
+    const existingUser = await User.findOne({ email }).lean();
     if (existingUser) {
       return res.status(400).json({ error: 'Email déjà utilisé' });
     }
 
-    // Génération clés RSA
+    // Génération clés RSA (opération CPU intensive)
+    console.log(`🔐 Generating keys for: ${email}`);
     const keys = generateKeyPair();
     
     const user = new User({
@@ -28,13 +32,20 @@ router.post('/register', async (req, res) => {
       role: 'user' // Force le rôle user pour les nouveaux inscrits
     });
 
+    // Sauvegarde utilisateur
+    console.log(`💾 Saving user: ${email}`);
     await user.save();
     
-    // Envoyer l'OTP pour la première connexion
+    // Envoyer l'OTP de manière asynchrone pour ne pas bloquer la réponse
+    console.log(`📧 Sending OTP async for: ${email}`);
     const OtpService = require('../services/otpService');
-    const otpResult = await OtpService.createAndSendOtp(user);
     
-    console.log(`📧 New user registered: ${email} - OTP sent`);
+    // Lancer l'OTP en arrière-plan sans attendre
+    OtpService.createAndSendOtp(user).catch(error => {
+      console.error(`❌ OTP sending failed for ${email}:`, error.message);
+    });
+    
+    console.log(`✅ User registered successfully: ${email}`);
     
     res.status(201).json({
       message: 'Compte créé avec succès ! Vérifiez votre email pour le code OTP.',
@@ -44,7 +55,7 @@ router.post('/register', async (req, res) => {
       otpSent: true
     });
   } catch (error) {
-    console.error('Registration error:', error);
+    console.error('❌ Registration error:', error);
     res.status(500).json({ error: error.message });
   }
 });

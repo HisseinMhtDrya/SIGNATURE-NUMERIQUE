@@ -87,8 +87,7 @@ if (process.env.NODE_ENV === 'production') {
   });
 } else {
   // En développement, on peut utiliser HTTP ou HTTPS avec auto-signés
-  app.listen(PORT, () => {
-    console.log(`🚀 Serveur démarré sur http://localhost:${PORT}`);
-    console.log(`⚠️  Pour HTTPS en production, configurez SSL_KEY_PATH et SSL_CERT_PATH`);
+  app.listen(5000, '0.0.0.0', () => {
+    console.log("Serveur accessible sur le réseau");
   });
 }

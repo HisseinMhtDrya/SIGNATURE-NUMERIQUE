@@ -25,10 +25,16 @@ const Navbar = () => {
         
         <div className="nav-center">
           {!isAdmin && (
-            <Link to="/dashboard" className="nav-link">
-              <span className="link-icon">📄</span>
-              <span className="link-text">Mes Documents</span>
-            </Link>
+            <>
+              <Link to="/dashboard" className="nav-link">
+                <span className="link-icon">📄</span>
+                <span className="link-text">Mes Documents</span>
+              </Link>
+              <Link to="/workflows" className="nav-link">
+                <span className="link-icon">🔄</span>
+                <span className="link-text">Mes Workflows</span>
+              </Link>
+            </>
           )}
           {isAdmin && (
             <>
@@ -84,6 +90,10 @@ const Navbar = () => {
         <Link to="/dashboard" className="mobile-nav-link">
           <span className="link-icon">📄</span>
           Mes Documents
+        </Link>
+        <Link to="/workflows" className="mobile-nav-link">
+          <span className="link-icon">🔄</span>
+          Mes Workflows
         </Link>
         {isAdmin && (
           <>

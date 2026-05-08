@@ -128,23 +128,29 @@ router.post('/', auth, upload.single('document'), async (req, res) => {
 // Liste documents
 router.get('/', auth, async (req, res) => {
   try {
+    const startTime = Date.now();
     console.log('📄 Documents route - User:', req.user.email, 'Role:', req.user.role);
     
     // Si admin, retourner tous les documents
     let documents;
     if (req.user.role === 'admin') {
-      console.log('👑 Admin access - returning all documents');
+      console.log('👑 Admin access - fetching all documents');
       documents = await Document.find({})
+        .select('name originalHash createdAt size owner') // Sélectionner seulement les champs nécessaires
         .populate('owner', 'name email')
+        .lean() // Utiliser lean pour meilleure performance
         .sort({ createdAt: -1 });
     } else {
-      console.log('👤 User access - returning own documents');
+      console.log('👤 User access - fetching own documents');
       documents = await Document.find({ owner: req.user._id })
+        .select('name originalHash createdAt size owner')
         .populate('owner', 'name email')
+        .lean()
         .sort({ createdAt: -1 });
     }
     
-    console.log('📊 Found documents:', documents.length);
+    const duration = Date.now() - startTime;
+    console.log(`📊 Found ${documents.length} documents in ${duration}ms`);
     res.json(documents);
   } catch (error) {
     console.error('❌ Error in documents route:', error);
