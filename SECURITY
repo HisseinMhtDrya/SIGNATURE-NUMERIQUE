@@ -67,56 +67,6 @@ Votre plateforme dispose d'une sécurité robuste et complète contre les attaqu
 | **A09: CRLF Injection** | Input validation | ✅ PROTÉGÉ |
 | **A10: SSRF** | CORS + CSP | ✅ PROTÉGÉ |
 
----
 
-## 🔧 **Configuration HTTPS**
-
-### **Développement**
-```bash
-# Frontend (HTTP)
-npm start  # http://localhost:3000
-
-# Backend (HTTP)  
-npm start  # http://localhost:5000
-```
-
-### **Production**
-```bash
-# Variables d'environnement
-NODE_ENV=production
-SSL_KEY_PATH=/path/to/ssl.key
-SSL_CERT_PATH=/path/to/ssl.crt
-
-# Frontend (HTTPS)
-npm run build
-serve -s build -l 3000 --ssl-cert /path/to/cert.pem --ssl-key /path/to/key.pem
-
-# Backend (HTTPS)
-npm start  # https://localhost:5000
-```
-
----
-
-## 🎯 **Recommandations**
-
-### **Pour la production**
-1. **Obtenir des certificats SSL** (Let's Encrypt recommandé)
-2. **Configurer un reverse proxy** (Nginx/Apache)
-3. **Surveiller les logs** de sécurité
-4. **Mettre à jour régulièrement** les dépendances
-
-### **Monitoring**
-- ✅ Logs de requêtes activés
-- ✅ Rate limiting avec alertes
-- ✅ Gestion des erreurs centralisée
-
----
-
-## 🏆 **Conclusion**
-
-Votre plateforme est **TRÈS SÉCURISÉE** et prête pour la production. 
-Toutes les protections essentielles sont en place avec une configuration HTTPS robuste.
-
-**Score de sécurité : 9.5/10** ⭐
 
 Seul l'ajout de certificats SSL réels est nécessaire pour un déploiement en production.
