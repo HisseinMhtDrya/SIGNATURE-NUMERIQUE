@@ -4,8 +4,6 @@ const helmet = require('helmet');
 const cors = require('cors');
 const rateLimit = require('express-rate-limit');
 const path = require('path');
-const https = require('https');
-const fs = require('fs');
 const SecurityMiddleware = require('./middleware/security');
 const { errorHandler, notFound, unhandledRejectionHandler, uncaughtExceptionHandler } = require('./middleware/errorHandler');
 require('dotenv').config();
@@ -85,20 +83,7 @@ mongoose.connect(process.env.MONGO_URI)
 
 const PORT = process.env.PORT || 5000;
 
-// Configuration HTTPS avec certificats auto-signés pour le développement
-if (process.env.NODE_ENV === 'production') {
-  // En production, utilisez des certificats réels
-  const options = {
-    key: fs.readFileSync(process.env.SSL_KEY_PATH || '/etc/ssl/private/apache-self-signed.key'),
-    cert: fs.readFileSync(process.env.SSL_CERT_PATH || '/etc/ssl/certs/apache-self-signed.crt')
-  };
-  
-  https.createServer(options, app).listen(PORT, () => {
-    console.log(`🚀 Serveur HTTPS démarré sur https://localhost:${PORT}`);
-  });
-} else {
-  // En développement, on peut utiliser HTTP ou HTTPS avec auto-signés
-  app.listen(5000, '0.0.0.0', () => {
-    console.log("Serveur accessible sur le réseau");
-  });
-}
+// Serveur HTTP simple - Render gère automatiquement le HTTPS
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`🚀 Serveur démarré sur le port ${PORT}`);
+});
