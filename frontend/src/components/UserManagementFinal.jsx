@@ -45,43 +45,7 @@ const UserManagement = () => {
     fetchUsers();
   }, []);
 
-  const toggleUserStatus = async (userId) => {
-    try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        setError('Veuillez vous connecter');
-        return;
-      }
-
-      console.log('🔄 Basculement statut utilisateur:', userId);
-
-      const response = await axios.patch(
-        `http://localhost:5000/api/admin/users/${userId}/toggle`,
-        {},
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        }
-      );
-
-      console.log('✅ Statut basculé:', response.data);
-
-      setUsers(users.map(user => 
-        user._id === userId || user.id === userId 
-          ? { ...user, isActive: response.data.user.isActive }
-          : user
-      ));
-
-      alert(`Utilisateur ${response.data.user.isActive ? 'activé' : 'bloqué'} avec succès`);
-    } catch (err) {
-      console.error('❌ Erreur basculement:', err.response?.data?.error || err.message);
-      setError(err.response?.data?.error || 'Erreur lors du basculement');
-      alert('Erreur lors du basculement du statut');
-    }
-  };
-
+  
   const deleteUser = async (userId) => {
     if (!window.confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur ?')) {
       return;
@@ -161,6 +125,7 @@ const UserManagement = () => {
     }
   };
 
+  
   const filteredUsers = users.filter(user => 
     user?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     user?.email?.toLowerCase().includes(searchTerm.toLowerCase())
@@ -584,21 +549,6 @@ const UserManagement = () => {
                             Admin
                           </button>
                         )}
-                        <button
-                          onClick={() => toggleUserStatus(user._id || user.id)}
-                          style={{
-                            padding: '6px 12px',
-                            backgroundColor: user?.isActive ? '#28a745' : '#ffc107',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: '4px',
-                            cursor: 'pointer',
-                            fontSize: '12px',
-                            fontWeight: '500'
-                          }}
-                        >
-                          {user?.isActive ? 'Bloquer' : 'Activer'}
-                        </button>
                         <button
                           onClick={() => deleteUser(user._id || user.id)}
                           style={{

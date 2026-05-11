@@ -29,9 +29,11 @@ const auth = async (req, res, next) => {
       return res.status(401).json({ error: 'Utilisateur non trouvé' });
     }
     
-    if (!user.isActive) {
-      console.log(`🚫 [${timestamp}] ${clientIP} - Access denied: User blocked - User ID: ${user._id}`);
-      return res.status(403).json({ error: 'Utilisateur bloqué' });
+    // Permettre la connexion même si inactif (pour première connexion OTP)
+    // Mais bloquer l'accès aux autres endpoints si inactif
+    if (!user.isActive && !req.path.includes('/api/auth/login') && !req.path.includes('/api/auth/register') && !req.path.includes('/api/auth/request-otp')) {
+      console.log(`🚫 [${timestamp}] ${clientIP} - Access denied: User inactive - User ID: ${user._id}`);
+      return res.status(403).json({ error: 'Utilisateur inactif. Veuillez vous connecter d\'abord.' });
     }
     
     // Mise à jour dernière connexion
