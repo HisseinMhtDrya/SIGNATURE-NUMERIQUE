@@ -77,7 +77,15 @@ app.use(errorHandler);
 process.on('unhandledRejection', unhandledRejectionHandler);
 process.on('uncaughtException', uncaughtExceptionHandler);
 
-mongoose.connect(process.env.MONGO_URI)
+const rawMongoUri = process.env.MONGO_URI || '';
+const MONGO_URI = rawMongoUri.trim().replace(/^['"]|['"]$/g, '');
+
+console.log('🔐 MONGO_URI chargé:', MONGO_URI ? '✅' : '❌');
+if (MONGO_URI && !MONGO_URI.startsWith('mongodb+srv://') && !MONGO_URI.startsWith('mongodb://')) {
+  console.warn('⚠️  MONGO_URI ne commence pas par mongodb+srv:// ou mongodb://');
+}
+
+mongoose.connect(MONGO_URI)
   .then(() => console.log('✅ MongoDB connecté'))
   .catch(err => console.error('❌ MongoDB erreur:', err));
 
