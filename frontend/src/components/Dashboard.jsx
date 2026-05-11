@@ -238,6 +238,16 @@ const Dashboard = () => {
             </div>
           </div>
         </div>
+        
+        <div className="workflow-link-section">
+          <button 
+            onClick={() => window.location.href = '/workflows'}
+            className="workflow-link-btn"
+          >
+            <FaHistory />
+            Voir l'historique des workflows
+          </button>
+        </div>
       </div>
       
       {/* Upload moderne */}
@@ -415,6 +425,11 @@ const Dashboard = () => {
                 <div className="actions-row">
                   <button 
                     onClick={() => {
+                      if (!doc.filePath) {
+                        console.error('Erreur: filePath non défini pour le document:', doc);
+                        toast.error('Erreur: chemin du document non disponible');
+                        return;
+                      }
                       const link = document.createElement('a');
                       link.href = `${API_BASE_URL.replace('/api', '')}/${doc.filePath}`;
                       link.download = doc.name;

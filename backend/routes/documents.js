@@ -136,14 +136,14 @@ router.get('/', auth, async (req, res) => {
     if (req.user.role === 'admin') {
       console.log('👑 Admin access - fetching all documents');
       documents = await Document.find({})
-        .select('name originalHash createdAt size owner') // Sélectionner seulement les champs nécessaires
+        .select('name originalHash createdAt size owner filePath') // Sélectionner seulement les champs nécessaires
         .populate('owner', 'name email')
         .lean() // Utiliser lean pour meilleure performance
         .sort({ createdAt: -1 });
     } else {
       console.log('👤 User access - fetching own documents');
       documents = await Document.find({ owner: req.user._id })
-        .select('name originalHash createdAt size owner')
+        .select('name originalHash createdAt size owner filePath')
         .populate('owner', 'name email')
         .lean()
         .sort({ createdAt: -1 });

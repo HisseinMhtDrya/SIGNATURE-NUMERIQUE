@@ -1,17 +1,8 @@
 const express = require('express');
 const router = express.Router();
+const publicRouter = express.Router();
 const workflowController = require('../controllers/workflowController');
 const { auth } = require('../middleware/auth');
-
-// Routes publiques pour les invités (sans authentification)
-// 2️⃣ Vérifier le code OTP (publique pour les invités)
-router.post('/verify-otp', workflowController.verifyOTP);
-
-// 3️⃣ Signer le document (publique pour les invités)
-router.post('/sign', workflowController.signDocument);
-
-// 4️⃣ Rejeter la signature (publique pour les invités)
-router.post('/reject', workflowController.rejectSignature);
 
 // Routes protégées (nécessitent authentification)
 router.use(auth);
@@ -28,7 +19,17 @@ router.get('/', workflowController.getUserWorkflows);
 // 9️⃣ Lister les workflows créés par l'utilisateur (avec historique)
 router.get('/created', workflowController.getCreatedWorkflows);
 
-// 6️⃣ Obtenir les détails d'un workflow (publique pour les invités) - DOIT ÊTRE LA DERNIÈRE ROUTE
-router.get('/:id', workflowController.getWorkflow);
+// Routes publiques pour les invités (sans authentification)
+// 6️⃣ Obtenir les détails d'un workflow (publique pour les invités)
+publicRouter.get('/:id', workflowController.getWorkflow);
 
-module.exports = router;
+// 2️⃣ Vérifier le code OTP (publique pour les invités)
+publicRouter.post('/verify-otp', workflowController.verifyOTP);
+
+// 3️⃣ Signer le document (publique pour les invités)
+publicRouter.post('/sign', workflowController.signDocument);
+
+// 4️⃣ Rejeter la signature (publique pour les invités)
+publicRouter.post('/reject', workflowController.rejectSignature);
+
+module.exports = { router, publicRouter };

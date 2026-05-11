@@ -18,12 +18,35 @@ const WorkflowHistory = () => {
   const fetchCreatedWorkflows = async () => {
     try {
       const token = localStorage.getItem('token');
+      console.log('📋 Début récupération workflows créés...');
+      console.log('🔑 Token présent:', !!token);
+      
+      if (!token) {
+        console.log('❌ Aucun token trouvé');
+        setError('Veuillez vous reconnecter');
+        setLoading(false);
+        return;
+      }
+      
       const response = await axios.get(`${API_BASE_URL}/workflow/created`, {
         headers: { Authorization: `Bearer ${token}` }
       });
+      
+      console.log('📊 Réponse API:', response.status);
+      console.log('📊 Données reçues:', response.data);
+      
       setWorkflows(response.data);
+      console.log('✅ Workflows chargés:', response.data.length);
+      
+      if (response.data.length === 0) {
+        console.log('ℹ️ Aucun workflow trouvé pour cet utilisateur');
+      } else {
+        console.log(`ℹ️ ${response.data.length} workflows trouvés`);
+      }
     } catch (error) {
-      console.error('Erreur récupération workflows:', error);
+      console.error('❌ Erreur récupération workflows:', error);
+      console.error('❌ Détails erreur:', error.response?.data || error.message);
+      setError('Erreur lors du chargement des workflows');
     } finally {
       setLoading(false);
     }

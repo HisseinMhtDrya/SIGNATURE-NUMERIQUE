@@ -33,7 +33,15 @@ app.use((req, res, next) => {
 
 // 🔒 CORS doit être AVANT les middlewares de sécurité
 app.use(cors({
-  origin: process.env.FRONTEND_URL || ['http://localhost:3000', 'https://localhost:3000', 'http://localhost:3001', 'https://localhost:3001', 'http://localhost:5000', 'https://localhost:5000'],
+  origin: [
+    'http://localhost:3000', 
+    'https://localhost:3000', 
+    'http://localhost:3001', 
+    'https://localhost:3001', 
+    'http://localhost:5000', 
+    'https://localhost:5000',
+    process.env.FRONTEND_URL
+  ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
@@ -58,7 +66,10 @@ app.use('/api/security', securityRoutes);
 // app.use('/api/intrusion', intrusionRoutes);
 app.use('/api/ml', mlRoutes);
 app.use('/api/test', testRoutes);
-app.use('/api/workflow', workflowRoutes);
+// Routes protégées (nécessitent authentification)
+app.use('/api/workflow', workflowRoutes.router);
+// Routes publiques pour les invités (doivent être APRÈS les routes protégées)
+app.use('/api/workflow', workflowRoutes.publicRouter);
 
 // 🚨 Gestion des erreurs (doit être APRÈS les routes)
 app.use(notFound);

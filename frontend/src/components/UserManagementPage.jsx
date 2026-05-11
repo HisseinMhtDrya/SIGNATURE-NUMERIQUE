@@ -1,5 +1,5 @@
 import React from 'react';
-import UserManagement from './UserManagement';
+import UserManagement from './UserManagementFinal';
 
 const UserManagementPage = () => {
   return (

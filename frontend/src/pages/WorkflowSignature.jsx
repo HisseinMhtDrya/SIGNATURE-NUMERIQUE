@@ -24,10 +24,8 @@ const WorkflowSignature = () => {
 
   const fetchWorkflow = async () => {
     try {
-      const token = localStorage.getItem('token');
       const res = await fetch(`${API_BASE_URL}/workflow/${workflowId}`, {
         headers: {
-          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         }
       });

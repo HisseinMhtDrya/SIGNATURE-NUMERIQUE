@@ -31,6 +31,14 @@ const CreateWorkflow = ({ documentId, onWorkflowCreated, onClose }) => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
+      
+      if (!token) {
+        setError('Veuillez vous reconnecter');
+        return;
+      }
+      
+      // Envoyer directement la requête sans vérification préalable
+      // Le middleware d'authentification vérifiera le token
       const res = await fetch(`${API_BASE_URL}/workflow/create`, {
         method: 'POST',
         headers: {
@@ -46,6 +54,13 @@ const CreateWorkflow = ({ documentId, onWorkflowCreated, onClose }) => {
       const data = await res.json();
 
       if (!res.ok) {
+        if (res.status === 401) {
+          // Token expiré ou invalide
+          localStorage.removeItem('token');
+          setError('Session expirée. Veuillez vous reconnecter.');
+          window.location.href = '/login';
+          return;
+        }
         throw new Error(data.error || 'Erreur lors de la création du workflow');
       }
 

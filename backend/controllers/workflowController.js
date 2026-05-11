@@ -10,7 +10,11 @@ const transporter = nodemailer.createTransport({
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS
-  }
+  },
+  tls: {
+    rejectUnauthorized: false
+  },
+  debug: process.env.NODE_ENV === 'development'
 });
 
 // Générer OTP
@@ -98,6 +102,8 @@ const sendInvite = async (workflowId, email) => {
     step.otpExpires = new Date(Date.now() + 5 * 60 * 1000); // 5 min
     await workflow.save();
 
+    console.log(`🔑 OTP généré pour ${email}: ${otp} (expire: ${step.otpExpires})`);
+
     // Vérifier si les configurations email sont présentes
     if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
       console.log('\n' + '='.repeat(60));
@@ -112,6 +118,8 @@ const sendInvite = async (workflowId, email) => {
       return { success: false, reason: 'Email non configuré', otp, link: `http://localhost:3001/guest-workflow/${workflowId}` };
     }
 
+    console.log(`📧 Configuration email - User: ${process.env.EMAIL_USER ? '✅' : '❌'}, Pass: ${process.env.EMAIL_PASS ? '✅' : '❌'}`);
+
     // Recréer le transporter pour éviter les problèmes de cache
     const transporter = nodemailer.createTransport({
       service: 'gmail',
@@ -119,13 +127,25 @@ const sendInvite = async (workflowId, email) => {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS
       },
-      debug: true, // Activer le debug en développement
-      logger: true
+      tls: {
+        rejectUnauthorized: false
+      },
+      debug: process.env.NODE_ENV === 'development'
     });
 
     // Vérifier la connexion avant d'envoyer
-    await transporter.verify();
-    console.log('✅ Connexion email vérifiée');
+    try {
+      await transporter.verify();
+      console.log('✅ Connexion email vérifiée');
+    } catch (verifyError) {
+      console.error('❌ Erreur vérification connexion email:', verifyError);
+      // Ne pas bloquer le workflow si la vérification échoue en développement
+      if (process.env.NODE_ENV === 'development') {
+        console.log('⚠️ Mode développement: continuation malgré erreur de vérification');
+      } else {
+        throw verifyError;
+      }
+    }
 
     // Mode production : envoyer l'email
     const baseUrl = process.env.FRONTEND_URL || 'http://localhost:3001';
@@ -147,12 +167,12 @@ const sendInvite = async (workflowId, email) => {
             <a href="${baseUrl}/guest-workflow/${workflowId}" 
                style="background-color: #007bff; color: white; padding: 12px 24px; 
                       text-decoration: none; border-radius: 5px; display: inline-block;">
-               Signer maintenant
+              🔗 Accéder au document
             </a>
           </p>
-          <hr style="margin: 30px 0;">
+          <hr style="margin: 30px 0; border: none; border-top: 1px solid #e9ecef;">
           <p style="color: #6c757d; font-size: 12px;">
-            Si vous n'avez pas demandé cette signature, veuillez ignorer cet email.
+            <small>Cet email a été généré automatiquement. Ne répondez pas à cet email.</small>
           </p>
         </div>
       `
@@ -170,7 +190,7 @@ const sendInvite = async (workflowId, email) => {
     // En mode développement, ne pas bloquer le workflow si l'email échoue
     if (process.env.NODE_ENV === 'development') {
       console.log('⚠️ Mode développement: workflow continuera malgré l\'erreur email');
-      console.log(`🔑 Code OTP (dev): ${otp || 'N/A'}`);
+      // Ne pas utiliser la variable otp ici car elle n'est pas dans le scope
       console.log(`🔗 Lien direct: http://localhost:3001/guest-workflow/${workflowId}`);
       return { success: false, reason: 'Erreur email (mode dev)', error: error.message };
     }
@@ -417,11 +437,11 @@ exports.getCreatedWorkflows = async (req, res) => {
     const workflows = await SignatureWorkflow.find({
       createdBy: req.user._id
     })
-    .populate('documentId', 'name filePath')
-    .populate('steps.userId', 'name email')
-    .populate('createdBy', 'name email')
-    .sort({ createdAt: -1 });
-
+      .populate('documentId', 'name filePath')
+      .populate('steps.userId', 'name email')
+      .populate('createdBy', 'name email')
+      .sort({ createdAt: -1 });
+    
     console.log(`✅ Trouvé ${workflows.length} workflows créés par ${req.user.email}`);
     
     res.json(workflows);
