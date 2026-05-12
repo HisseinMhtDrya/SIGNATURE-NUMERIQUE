@@ -6,7 +6,10 @@ console.log('🌟 Fichier UserManagementFinal.jsx chargé');
 
 const UserManagement = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [users, setUsers] = useState([]);
+  const [users, setUsers] = useState(() => {
+    console.log("🚀 Initialisation users avec [] safe");
+    return [];
+  });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [debugInfo, setDebugInfo] = useState('');
@@ -84,8 +87,16 @@ const UserManagement = () => {
       console.log('✅ Utilisateur supprimé:', response.data);
 
       setUsers(prevUsers => {
-        const safePrevUsers = Array.isArray(prevUsers) ? prevUsers : [];
-        return safePrevUsers.filter(user => 
+        console.log("🔍 DEBUG prevUsers avant filter:", prevUsers);
+        console.log("🔍 DEBUG type prevUsers:", typeof prevUsers);
+        console.log("🔍 DEBUG isArray prevUsers:", Array.isArray(prevUsers));
+        
+        if (!Array.isArray(prevUsers)) {
+          console.error("❌ prevUsers n'est pas un tableau:", prevUsers);
+          return [];
+        }
+        
+        return prevUsers.filter(user => 
           (user._id !== userId && user.id !== userId)
         );
       });
@@ -126,8 +137,16 @@ const UserManagement = () => {
       console.log('✅ Rôle admin attribué:', response.data);
 
       setUsers(prevUsers => {
-        const safePrevUsers = Array.isArray(prevUsers) ? prevUsers : [];
-        return safePrevUsers.map(user => 
+        console.log("🔍 DEBUG prevUsers avant map:", prevUsers);
+        console.log("🔍 DEBUG type prevUsers:", typeof prevUsers);
+        console.log("🔍 DEBUG isArray prevUsers:", Array.isArray(prevUsers));
+        
+        if (!Array.isArray(prevUsers)) {
+          console.error("❌ prevUsers n'est pas un tableau dans assignAdminRole:", prevUsers);
+          return [];
+        }
+        
+        return prevUsers.map(user => 
           user._id === userId || user.id === userId 
             ? { ...user, role: 'admin' }
             : user
@@ -144,23 +163,25 @@ const UserManagement = () => {
 
   
   const filteredUsers = useMemo(() => {
+    console.log("🔍 DEBUG users dans useMemo:", users);
+    console.log("🔍 DEBUG type users:", typeof users);
+    console.log("🔍 DEBUG isArray users:", Array.isArray(users));
+    
+    if (!Array.isArray(users)) {
+      console.error("❌ users n'est pas un tableau dans filteredUsers:", users);
+      return [];
+    }
 
-  // Protection absolue
-  const safeUsers = Array.isArray(users)
-    ? users
-    : [];
+    return users.filter((user) =>
+      user?.name
+        ?.toLowerCase()
+        .includes(searchTerm.toLowerCase()) ||
 
-  return safeUsers.filter((user) =>
-    user?.name
-      ?.toLowerCase()
-      .includes(searchTerm.toLowerCase()) ||
-
-    user?.email
-      ?.toLowerCase()
-      .includes(searchTerm.toLowerCase())
-  );
-
-}, [users, searchTerm]);
+      user?.email
+        ?.toLowerCase()
+        .includes(searchTerm.toLowerCase())
+    );
+  }, [users, searchTerm]);
 
   console.log('🎨 UserManagement render - users:', users.length, 'loading:', loading);
 
