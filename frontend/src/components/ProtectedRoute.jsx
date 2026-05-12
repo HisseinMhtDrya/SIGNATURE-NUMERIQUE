@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Navigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { API_BASE_URL } from '../config/api';
+import { safeGetUser, safeGetToken } from '../utils/storage';
 import { toast } from 'react-toastify';
 
 const ProtectedRoute = ({ children, requireAdmin = false }) => {
   const [isValidating, setIsValidating] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const token = localStorage.getItem('token');
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const token = safeGetToken();
+  const user = safeGetUser();
 
   useEffect(() => {
     const validateToken = async () => {

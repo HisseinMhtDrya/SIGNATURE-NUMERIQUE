@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { API_BASE_URL } from '../config/api';
-import { useDropzone } from 'react-dropzone';
-import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
+import { FaHistory, FaShare, FaPlus } from 'react-icons/fa';
+import { safeGetUser } from '../utils/storage';
 import { FaShare, FaTrash, FaEdit, FaCopy, FaCalendar, FaClock, FaCheck, FaTimes, FaUsers, FaFilePdf, FaEye, FaHourglassHalf, FaCheckCircle, FaTimesCircle, FaEnvelope, FaHistory, FaSignature, FaDownload, FaCloudUploadAlt, FaFolderOpen, FaFileAlt, FaFileWord, FaFileImage } from 'react-icons/fa';
 import CreateWorkflow from './CreateWorkflow';
 import './DashboardModern.css';
@@ -23,7 +24,7 @@ const Dashboard = () => {
   const navigate = useNavigate();
 
   const token = localStorage.getItem('token');
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const user = safeGetUser();
   const documentsPerPage = 6;
 
   useEffect(() => {

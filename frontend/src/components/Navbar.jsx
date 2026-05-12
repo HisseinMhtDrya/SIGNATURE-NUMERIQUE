@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { safeGetUser } from '../utils/storage';
 
 const Navbar = () => {
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const user = safeGetUser();
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
