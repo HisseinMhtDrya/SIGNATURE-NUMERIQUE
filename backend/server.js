@@ -38,6 +38,7 @@ app.use(cors({
     'https://localhost:3001', 
     'http://localhost:5000', 
     'https://localhost:5000',
+    'https://signature-numerique.onrender.com',
     process.env.FRONTEND_URL
   ],
   credentials: true,
