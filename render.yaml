@@ -1,0 +1,20 @@
+services:
+  # Service Frontend
+  - type: web
+    name: signature-numerique-frontend
+    env: node
+    rootDir: frontend
+    buildCommand: cd frontend && npm install && npm run build
+    buildFilter:
+      paths:
+        - frontend/build/**
+    publishPath: build
+    publishDir: build
+
+  # Service Backend (si vous voulez déployer les deux)
+  # - type: web
+  #   name: signature-numerique-api
+  #   env: node
+  #   rootDir: backend
+  #   buildCommand: cd backend && npm install
+  #   startCommand: npm start
