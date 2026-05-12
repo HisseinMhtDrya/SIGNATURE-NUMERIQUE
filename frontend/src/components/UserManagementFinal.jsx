@@ -8,6 +8,7 @@ const UserManagement = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [debugInfo, setDebugInfo] = useState('');
 
   useEffect(() => {
     console.log('🚀 UserManagement monté - chargement des utilisateurs');
@@ -17,12 +18,18 @@ const UserManagement = () => {
         setLoading(true);
         const token = localStorage.getItem('token');
         
+        console.log('🔍 Token trouvé:', token ? 'OUI' : 'NON');
+        console.log('🔍 Token length:', token ? token.length : 0);
+        
         if (!token) {
-          setError('Veuillez vous connecter');
+          setError('Veuillez vous connecter - Token manquant');
+          setDebugInfo('Token non trouvé dans localStorage');
           setLoading(false);
           return;
         }
 
+        console.log('📡 Appel API vers: http://localhost:5000/api/admin/users');
+        
         const response = await axios.get('http://localhost:5000/api/admin/users', {
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -34,9 +41,16 @@ const UserManagement = () => {
         console.log('✅ Utilisateurs chargés:', response.data.users);
         setUsers(response.data.users || []);
         setError('');
+        setDebugInfo(`Succès: ${response.data.users?.length || 0} utilisateurs chargés`);
       } catch (err) {
-        console.error('❌ Erreur:', err.response?.data?.error || err.message);
-        setError(err.response?.data?.error || 'Erreur lors du chargement');
+        console.error('❌ Erreur complète:', err);
+        console.error('❌ Response status:', err.response?.status);
+        console.error('❌ Response data:', err.response?.data);
+        console.error('❌ Message:', err.message);
+        
+        const errorMsg = err.response?.data?.error || err.message || 'Erreur inconnue';
+        setError(`Erreur lors du chargement: ${errorMsg}`);
+        setDebugInfo(`Status: ${err.response?.status || 'N/A'}, Error: ${errorMsg}`);
       } finally {
         setLoading(false);
       }
@@ -197,6 +211,21 @@ const UserManagement = () => {
       backgroundColor: '#f5f5f5',
       minHeight: '100vh'
     }}>
+      {/* Debug Info */}
+      {debugInfo && (
+        <div style={{
+          backgroundColor: '#fff3cd',
+          border: '1px solid #ffeaa7',
+          borderRadius: '8px',
+          padding: '15px',
+          marginBottom: '20px',
+          fontSize: '14px',
+          color: '#856404'
+        }}>
+          <strong>🔍 Debug Info:</strong> {debugInfo}
+        </div>
+      )}
+      
       <div style={{
         backgroundColor: 'white',
         borderRadius: '8px',
