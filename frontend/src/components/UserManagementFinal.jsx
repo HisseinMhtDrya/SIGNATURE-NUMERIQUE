@@ -162,25 +162,22 @@ const UserManagement = () => {
   };
 
   
+  // Correction ultra-sécurisée double protection
   const filteredUsers = useMemo(() => {
-    console.log("🔍 DEBUG users dans useMemo:", users);
-    console.log("🔍 DEBUG type users:", typeof users);
-    console.log("🔍 DEBUG isArray users:", Array.isArray(users));
-    
-    if (!Array.isArray(users)) {
-      console.error("❌ users n'est pas un tableau dans filteredUsers:", users);
+    // Protection contre null + vérification de type
+    if (!users || !Array.isArray(users)) {
+      console.error("❌ users n'est pas un tableau ou est null:", users);
       return [];
     }
-
-    return users.filter((user) =>
-      user?.name
-        ?.toLowerCase()
-        .includes(searchTerm.toLowerCase()) ||
-
-      user?.email
-        ?.toLowerCase()
-        .includes(searchTerm.toLowerCase())
-    );
+    
+    // Sécurité sur les propriétés avec fallback
+    return users.filter(user => {
+      const name = user?.name || user?.username || user?.nom || "";
+      const email = user?.email || "";
+      
+      return name.toLowerCase().includes((searchTerm || "").toLowerCase()) ||
+             email.toLowerCase().includes((searchTerm || "").toLowerCase());
+    });
   }, [users, searchTerm]);
 
   console.log('🎨 UserManagement render - users:', users.length, 'loading:', loading);
