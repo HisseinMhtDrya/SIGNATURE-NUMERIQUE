@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
+import { API_BASE_URL } from '../config/api';
 
 console.log('🌟 Fichier UserManagementFinal.jsx chargé');
 
@@ -14,47 +15,43 @@ const UserManagement = () => {
     console.log('🚀 UserManagement monté - chargement des utilisateurs');
     
     const fetchUsers = async () => {
-      try {
-        setLoading(true);
-        const token = localStorage.getItem('token');
-        
-        console.log('🔍 Token trouvé:', token ? 'OUI' : 'NON');
-        console.log('🔍 Token length:', token ? token.length : 0);
-        
-        if (!token) {
-          setError('Veuillez vous connecter - Token manquant');
-          setDebugInfo('Token non trouvé dans localStorage');
-          setLoading(false);
-          return;
-        }
+  try {
+    setLoading(true);
 
-        console.log('📡 Appel API vers: http://localhost:5000/api/admin/users');
-        
-        const response = await axios.get('http://localhost:5000/api/admin/users', {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        });
+    const response = await axios.get(
+      `${API_BASE_URL}/users` 
+    );
 
-        console.log('✅ Réponse API complète:', response.data);
-        console.log('✅ Utilisateurs chargés:', response.data.users);
-        setUsers(response.data.users || []);
-        setError('');
-        setDebugInfo(`Succès: ${response.data.users?.length || 0} utilisateurs chargés`);
-      } catch (err) {
-        console.error('❌ Erreur complète:', err);
-        console.error('❌ Response status:', err.response?.status);
-        console.error('❌ Response data:', err.response?.data);
-        console.error('❌ Message:', err.message);
-        
-        const errorMsg = err.response?.data?.error || err.message || 'Erreur inconnue';
-        setError(`Erreur lors du chargement: ${errorMsg}`);
-        setDebugInfo(`Status: ${err.response?.status || 'N/A'}, Error: ${errorMsg}`);
-      } finally {
-        setLoading(false);
-      }
-    };
+    console.log("✅ API USERS:", response.data);
+
+    // Sécurisation absolue
+    const usersData = response?.data?.users;
+
+    // Vérifie que c'est un tableau
+    const safeUsers = Array.isArray(usersData)
+      ? usersData
+      : [];
+
+    // Debug backend
+    if (!Array.isArray(usersData)) {
+      console.error(
+        "❌ users n'est pas un tableau :",
+        response.data
+      );
+    }
+
+    setUsers(safeUsers);
+
+  } catch (error) {
+    console.error("❌ Erreur chargement users:", error);
+
+    // sécurité
+    setUsers([]);
+
+  } finally {
+    setLoading(false);
+  }
+};
 
     fetchUsers();
   }, []);
@@ -86,9 +83,12 @@ const UserManagement = () => {
 
       console.log('✅ Utilisateur supprimé:', response.data);
 
-      setUsers(users.filter(user => 
-        (user._id !== userId && user.id !== userId)
-      ));
+      setUsers(prevUsers => {
+        const safePrevUsers = Array.isArray(prevUsers) ? prevUsers : [];
+        return safePrevUsers.filter(user => 
+          (user._id !== userId && user.id !== userId)
+        );
+      });
 
       alert('Utilisateur supprimé avec succès');
     } catch (err) {
@@ -125,11 +125,14 @@ const UserManagement = () => {
 
       console.log('✅ Rôle admin attribué:', response.data);
 
-      setUsers(users.map(user => 
-        user._id === userId || user.id === userId 
-          ? { ...user, role: 'admin' }
-          : user
-      ));
+      setUsers(prevUsers => {
+        const safePrevUsers = Array.isArray(prevUsers) ? prevUsers : [];
+        return safePrevUsers.map(user => 
+          user._id === userId || user.id === userId 
+            ? { ...user, role: 'admin' }
+            : user
+        );
+      });
 
       alert('Rôle administrateur attribué avec succès');
     } catch (err) {
@@ -140,10 +143,24 @@ const UserManagement = () => {
   };
 
   
-  const filteredUsers = users.filter(user => 
-    user?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user?.email?.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredUsers = useMemo(() => {
+
+  // Protection absolue
+  const safeUsers = Array.isArray(users)
+    ? users
+    : [];
+
+  return safeUsers.filter((user) =>
+    user?.name
+      ?.toLowerCase()
+      .includes(searchTerm.toLowerCase()) ||
+
+    user?.email
+      ?.toLowerCase()
+      .includes(searchTerm.toLowerCase())
   );
+
+}, [users, searchTerm]);
 
   console.log('🎨 UserManagement render - users:', users.length, 'loading:', loading);
 
