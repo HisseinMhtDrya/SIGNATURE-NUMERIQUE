@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
   FaUsers, FaFilePdf, FaSignature, FaChartBar, FaTrash, FaEdit, FaEye, 
   FaUserShield, FaClock, FaChartLine, FaDownload, FaUpload, FaCheckCircle, 
@@ -25,14 +25,26 @@ const AdminDashboard = () => {
   const [showNotifications, setShowNotifications] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(null);
   
-  const filteredUsers = users.filter(user => 
-    user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.email.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredUsers = useMemo(() => {
+    if (!Array.isArray(users)) {
+      console.error("❌ users n'est pas un tableau dans AdminDashboard:", users);
+      return [];
+    }
+    return users.filter(user => 
+      user?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user?.email?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [users, searchTerm]);
 
-  const filteredDocuments = documents.filter(doc =>
-    doc.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredDocuments = useMemo(() => {
+    if (!Array.isArray(documents)) {
+      console.error("❌ documents n'est pas un tableau dans AdminDashboard:", documents);
+      return [];
+    }
+    return documents.filter(doc =>
+      doc?.name?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [documents, searchTerm]);
 
   const API_URL = API_BASE_URL;
 
@@ -114,7 +126,13 @@ const AdminDashboard = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
       
-      setUsers(users.filter(user => user._id !== userId));
+      setUsers(prevUsers => {
+        if (!Array.isArray(prevUsers)) {
+          console.error("❌ prevUsers n'est pas un tableau dans deleteUser AdminDashboard:", prevUsers);
+          return [];
+        }
+        return prevUsers.filter(user => user._id !== userId);
+      });
       showAlert('success', 'Utilisateur supprimé');
     } catch (error) {
       showAlert('danger', 'Erreur lors de la suppression');
@@ -386,7 +404,7 @@ const AdminDashboard = () => {
                     
                     <div className="stat-content">
                       <div className="stat-number-container">
-                        <span className="stat-number">{users.filter(u => u.role === 'admin').length}</span>
+                        <span className="stat-number">{Array.isArray(users) ? users.filter(u => u.role === 'admin').length : 0}</span>
                         <span className="stat-unit">administrateurs</span>
                       </div>
                       <div className="stat-description">
@@ -536,7 +554,7 @@ const AdminDashboard = () => {
                           <FaCheckCircle />
                         </div>
                         <div className="stat-info-modern">
-                          <span className="stat-number">{users.filter(u => u.isActive).length}</span>
+                          <span className="stat-number">{Array.isArray(users) ? users.filter(u => u.isActive).length : 0}</span>
                           <span className="stat-label">Actifs</span>
                         </div>
                       </div>
@@ -545,7 +563,7 @@ const AdminDashboard = () => {
                           <FaBan />
                         </div>
                         <div className="stat-info-modern">
-                          <span className="stat-number">{users.filter(u => !u.isActive).length}</span>
+                          <span className="stat-number">{Array.isArray(users) ? users.filter(u => !u.isActive).length : 0}</span>
                           <span className="stat-label">Bloqués</span>
                         </div>
                       </div>
